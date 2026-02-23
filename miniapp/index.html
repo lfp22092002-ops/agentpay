@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AgentPay</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Authenticating…</p>
+    </div>
+
+    <!-- App shell -->
+    <div id="app" class="app hidden">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">AgentPay</h1>
+            <div class="header-right">
+                <span id="user-name" class="user-name"></span>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-bar">
+            <button class="tab active" data-tab="dashboard">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">Agents</span>
+            </button>
+            <button class="tab" data-tab="transactions">
+                <span class="tab-icon">📜</span>
+                <span class="tab-label">History</span>
+            </button>
+            <button class="tab" data-tab="settings">
+                <span class="tab-icon">⚙️</span>
+                <span class="tab-label">Settings</span>
+            </button>
+            <button class="tab" data-tab="card">
+                <span class="tab-icon">💳</span>
+                <span class="tab-label">Card</span>
+            </button>
+            <button class="tab" data-tab="wallet">
+                <span class="tab-icon">🔗</span>
+                <span class="tab-label">Wallet</span>
+            </button>
+        </nav>
+
+        <!-- Tab Content -->
+        <main class="content">
+            <!-- Dashboard Tab -->
+            <section id="tab-dashboard" class="tab-content active">
+                <div class="section-header">
+                    <h2>Your Agents</h2>
+                </div>
+                <div id="agents-list" class="agents-list">
+                    <div class="empty-state">Loading agents…</div>
+                </div>
+            </section>
+
+            <!-- Transactions Tab -->
+            <section id="tab-transactions" class="tab-content">
+                <div class="section-header">
+                    <h2>Transaction History</h2>
+                </div>
+                <div class="filters">
+                    <select id="filter-type" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="spend">Spend</option>
+                        <option value="deposit">Deposit</option>
+                        <option value="refund">Refund</option>
+                        <option value="fee">Fee</option>
+                    </select>
+                    <input type="date" id="filter-date" class="filter-input" placeholder="Filter by date">
+                </div>
+                <div id="transactions-list" class="transactions-list">
+                    <div class="empty-state">Select an agent to view transactions</div>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="tab-settings" class="tab-content">
+                <div class="section-header">
+                    <h2>Agent Settings</h2>
+                </div>
+                <div id="settings-panel" class="settings-panel">
+                    <div class="empty-state">Select an agent from the dashboard</div>
+                </div>
+            </section>
+
+            <!-- Card Tab -->
+            <section id="tab-card" class="tab-content">
+                <div class="section-header">
+                    <h2>Virtual Card</h2>
+                </div>
+                <div id="card-panel" class="card-panel">
+                    <div class="empty-state">Select an agent to view card</div>
+                </div>
+            </section>
+
+            <!-- Wallet Tab -->
+            <section id="tab-wallet" class="tab-content">
+                <div class="section-header">
+                    <h2>On-Chain Wallet</h2>
+                </div>
+                <div id="wallet-panel" class="wallet-panel">
+                    <div class="empty-state">Select an agent to view wallet</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,11 +1,10 @@
-venv/
 __pycache__/
 *.pyc
 .env
-*.egg-info/
-dist/
-build/
-certs/
 data/
+certs/
+venv/
 *.db
-*.sqlite3
+*.sqlite
+.salt
+wallets/
