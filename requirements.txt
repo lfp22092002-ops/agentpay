@@ -12,6 +12,8 @@ psycopg2-binary==2.9.11
 PyJWT==2.10.0
 python-dotenv==1.2.1
 slowapi==0.1.9
+solana[spl]>=0.34.0
+solders>=0.21.0
 uvicorn==0.41.0
 web3==7.10.0
 x402==1.0.0

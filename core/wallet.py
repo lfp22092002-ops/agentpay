@@ -1,3 +1,4 @@
+import hashlib
 import secrets
 import asyncio
 from decimal import Decimal
@@ -10,8 +11,17 @@ from core.webhooks import deliver_webhook, notify_spend, notify_deposit, notify_
 from core.approvals import request_approval, DEFAULT_AUTO_APPROVE_USD
 
 
-def generate_api_key() -> str:
-    return f"ap_{secrets.token_hex(24)}"
+def hash_api_key(api_key: str) -> str:
+    """SHA-256 hash of the API key for storage."""
+    return hashlib.sha256(api_key.encode()).hexdigest()
+
+
+def generate_api_key() -> tuple[str, str, str]:
+    """Returns (full_key, key_hash, key_prefix)"""
+    full_key = f"ap_{secrets.token_hex(24)}"
+    key_hash = hash_api_key(full_key)
+    key_prefix = full_key[:8] + "..."
+    return full_key, key_hash, key_prefix
 
 
 async def get_or_create_user(db: AsyncSession, telegram_id: int, username: str = None, first_name: str = None) -> User:
@@ -25,11 +35,14 @@ async def get_or_create_user(db: AsyncSession, telegram_id: int, username: str =
     return user
 
 
-async def create_agent(db: AsyncSession, user: User, name: str) -> Agent:
+async def create_agent(db: AsyncSession, user: User, name: str) -> tuple[Agent, str]:
+    """Create agent, return (agent, full_key). Full key is shown once, never stored."""
+    full_key, key_hash, key_prefix = generate_api_key()
     agent = Agent(
         user_id=user.id,
         name=name,
-        api_key=generate_api_key(),
+        api_key_hash=key_hash,
+        api_key_prefix=key_prefix,
         daily_limit_usd=Decimal(str(DEFAULT_DAILY_LIMIT_USD)),
         tx_limit_usd=Decimal(str(DEFAULT_TRANSACTION_LIMIT_USD)),
     )
@@ -41,7 +54,7 @@ async def create_agent(db: AsyncSession, user: User, name: str) -> Agent:
 
     await db.commit()
     await db.refresh(agent)
-    return agent
+    return agent, full_key
 
 
 async def get_user_agents(db: AsyncSession, user: User) -> list[Agent]:
@@ -50,8 +63,19 @@ async def get_user_agents(db: AsyncSession, user: User) -> list[Agent]:
 
 
 async def get_agent_by_api_key(db: AsyncSession, api_key: str) -> Agent | None:
-    result = await db.execute(select(Agent).where(Agent.api_key == api_key, Agent.is_active == True))
+    key_hash = hash_api_key(api_key)
+    result = await db.execute(select(Agent).where(Agent.api_key_hash == key_hash, Agent.is_active == True))
     return result.scalar_one_or_none()
+
+
+async def rotate_api_key(db: AsyncSession, agent: Agent) -> str:
+    """Rotate an agent's API key. Returns the new full key (shown once)."""
+    full_key, key_hash, key_prefix = generate_api_key()
+    agent.api_key_hash = key_hash
+    agent.api_key_prefix = key_prefix
+    await db.commit()
+    await db.refresh(agent)
+    return full_key
 
 
 async def deposit(db: AsyncSession, agent: Agent, amount_usd: Decimal, method: PaymentMethod, external_ref: str = None, description: str = None) -> Transaction:

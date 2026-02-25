@@ -58,7 +58,8 @@ class Agent(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
     name: Mapped[str] = mapped_column(String(255))
-    api_key: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    api_key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)  # SHA-256 hex
+    api_key_prefix: Mapped[str] = mapped_column(String(12), default="")  # "ap_xxxx..." for display
     balance_usd: Mapped[Decimal] = mapped_column(Numeric(12, 4), default=Decimal("0.0000"))
     daily_limit_usd: Mapped[Decimal] = mapped_column(Numeric(12, 4), default=Decimal("50.0000"))
     tx_limit_usd: Mapped[Decimal] = mapped_column(Numeric(12, 4), default=Decimal("25.0000"))
@@ -79,6 +80,7 @@ class Wallet(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     agent_id: Mapped[str] = mapped_column(String(36), ForeignKey("agents.id"), unique=True)
     wallet_type: Mapped[str] = mapped_column(String(50), default="internal")  # internal, usdc, virtual_card
+    chain: Mapped[str] = mapped_column(String(20), default="base")  # base, polygon, bnb, solana
     external_id: Mapped[str | None] = mapped_column(String(255), nullable=True)  # Coinbase/Lithic ID
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)  # crypto address
     card_last4: Mapped[str | None] = mapped_column(String(4), nullable=True)

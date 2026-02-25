@@ -13,12 +13,14 @@ from models.schema import PaymentMethod, Agent
 from core.wallet import (
     get_or_create_user, create_agent, get_user_agents,
     deposit, spend, get_agent_transactions, get_daily_spent,
-    execute_approved_spend, refund, transfer_between_agents
+    execute_approved_spend, refund, transfer_between_agents,
+    rotate_api_key
 )
 from core.webhooks import set_bot as set_webhook_bot
 from core.approvals import resolve_approval, get_pending as get_pending_approval
 from providers.telegram_stars import stars_to_usd
-from providers.local_wallet import create_agent_wallet, get_wallet_address, get_wallet_balance
+from providers.local_wallet import create_agent_wallet, get_wallet_address, get_wallet_balance, CHAIN_CONFIGS, SUPPORTED_EVM_CHAINS
+from providers.solana_wallet import create_solana_wallet, get_solana_wallet_address, get_solana_balance
 from providers.lithic_card import (
     create_virtual_card, get_card_details, update_card_state, update_spend_limit
 )
@@ -43,14 +45,22 @@ async def cleanup_agent(agent_id: str):
     import os
     _base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    # 1. Delete wallet file
+    # 1. Delete wallet files (EVM + Solana)
     wallet_file = os.path.join(_base, "data", "wallets", f"{agent_id}.json")
     if os.path.exists(wallet_file):
         try:
             os.remove(wallet_file)
-            logger.info(f"Deleted wallet file for {agent_id}")
+            logger.info(f"Deleted EVM wallet file for {agent_id}")
         except Exception as e:
             logger.warning(f"Failed to delete wallet file for {agent_id}: {e}")
+
+    solana_wallet_file = os.path.join(_base, "data", "wallets", f"{agent_id}_solana.json")
+    if os.path.exists(solana_wallet_file):
+        try:
+            os.remove(solana_wallet_file)
+            logger.info(f"Deleted Solana wallet file for {agent_id}")
+        except Exception as e:
+            logger.warning(f"Failed to delete Solana wallet file for {agent_id}: {e}")
 
     # 2. Delete card file
     card_file = os.path.join(_base, "data", "cards", f"{agent_id}.json")
@@ -98,7 +108,8 @@ async def cmd_start(message: Message):
         "🔹 /fund — Add funds (Telegram Stars)\n"
         "🔹 /balance — Check balances\n"
         "🔹 /history — Transaction history\n"
-        "🔹 /apikey — Get your agent's API key\n"
+        "🔹 /apikey — View your API key prefixes\n"
+        "🔹 /rotatekey — Rotate an API key\n"
         "🔹 /limits — View/set spending limits\n"
         "🔹 /setlimit — Change limits\n"
         "🔹 /delete — Delete an agent\n"
@@ -115,7 +126,8 @@ async def cmd_help(message: Message):
         "<b>🚀 Getting Started</b>\n"
         "/newagent — Create an agent\n"
         "/fund — Add funds (Telegram Stars)\n"
-        "/apikey — Get your API key\n\n"
+        "/apikey — View API key prefixes\n"
+        "/rotatekey — Generate new API key\n\n"
         "<b>💰 Money</b>\n"
         "/balance — Check balances\n"
         "/history — Transaction history\n"
@@ -167,11 +179,12 @@ async def cmd_new_agent(message: Message):
             await message.answer("⚠️ Free tier: max 5 agents. Upgrade to Pro for unlimited.")
             return
 
-        agent = await create_agent(db, user, name)
+        agent, full_key = await create_agent(db, user, name)
 
     await message.answer(
         f"✅ Agent <b>{name}</b> created!\n\n"
-        f"🔑 API Key:\n<code>{agent.api_key}</code>\n\n"
+        f"🔑 API Key:\n<code>{full_key}</code>\n\n"
+        f"⚠️ <b>Save this key now — it will NOT be shown again!</b>\n\n"
         f"💰 Balance: $0.00\n"
         f"📊 Daily limit: ${agent.daily_limit_usd}\n"
         f"📊 Per-tx limit: ${agent.tx_limit_usd}\n\n"
@@ -214,11 +227,85 @@ async def cmd_apikey(message: Message):
         await message.answer("No agents. Create one with <code>/newagent MyBot</code>")
         return
 
-    lines = ["🔑 <b>API Keys</b> (keep secret!)\n"]
+    lines = ["🔑 <b>API Key Prefixes</b>\n"]
     for a in agents:
-        lines.append(f"<b>{a.name}</b>:\n<code>{a.api_key}</code>\n")
+        lines.append(f"<b>{a.name}</b>: <code>{a.api_key_prefix}</code>")
+    lines.append("\n⚠️ Full keys are shown only at creation. Use /rotatekey to get a new one.")
 
     await message.answer("\n".join(lines))
+
+
+@router.message(Command("rotatekey"))
+async def cmd_rotatekey(message: Message):
+    """Rotate an agent's API key: /rotatekey AgentName"""
+    args = message.text.split(maxsplit=1) if message.text else []
+    if len(args) < 2:
+        # Show agent selection buttons
+        async with async_session() as db:
+            user = await get_or_create_user(db, message.from_user.id)
+            agents = await get_user_agents(db, user)
+        if not agents:
+            await message.answer("No agents. Create one with <code>/newagent MyBot</code>")
+            return
+        buttons = []
+        for a in agents:
+            buttons.append([InlineKeyboardButton(
+                text=f"🔄 {a.name} ({a.api_key_prefix})",
+                callback_data=f"rotate:{a.id}"
+            )])
+        buttons.append([InlineKeyboardButton(text="❌ Cancel", callback_data="rotate:cancel")])
+        await message.answer(
+            "🔄 <b>Rotate API key for which agent?</b>\n\n"
+            "⚠️ The old key will stop working immediately.",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        )
+        return
+
+    name = args[1].strip()
+    async with async_session() as db:
+        user = await get_or_create_user(db, message.from_user.id)
+        result = await db.execute(
+            select(Agent).where(Agent.user_id == user.id, Agent.name == name)
+        )
+        agent = result.scalar_one_or_none()
+        if not agent:
+            await message.answer(f"Agent '{name}' not found. Check /agents")
+            return
+        new_key = await rotate_api_key(db, agent)
+
+    await message.answer(
+        f"🔄 API key rotated for <b>{name}</b>!\n\n"
+        f"🔑 New API Key:\n<code>{new_key}</code>\n\n"
+        f"⚠️ <b>Save this key now — it will NOT be shown again!</b>\n"
+        f"The old key has been invalidated."
+    )
+
+
+@router.callback_query(F.data.startswith("rotate:"))
+async def callback_rotate(callback: CallbackQuery):
+    agent_id = callback.data.split(":")[1]
+    if agent_id == "cancel":
+        await callback.message.edit_text("Cancelled.")
+        await callback.answer()
+        return
+
+    async with async_session() as db:
+        result = await db.execute(select(Agent).where(Agent.id == agent_id))
+        agent = result.scalar_one_or_none()
+        if not agent:
+            await callback.message.edit_text("Agent not found.")
+            await callback.answer()
+            return
+        name = agent.name
+        new_key = await rotate_api_key(db, agent)
+
+    await callback.message.edit_text(
+        f"🔄 API key rotated for <b>{name}</b>!\n\n"
+        f"🔑 New API Key:\n<code>{new_key}</code>\n\n"
+        f"⚠️ <b>Save this key now — it will NOT be shown again!</b>\n"
+        f"The old key has been invalidated."
+    )
+    await callback.answer()
 
 
 @router.message(Command("delete"))
@@ -571,8 +658,16 @@ async def cmd_setlimit(message: Message):
 # ═══════════════════════════════════════
 
 # ═══════════════════════════════════════
-# WALLET (On-chain USDC)
+# WALLET (Multi-Chain: Base, Polygon, BNB, Solana)
 # ═══════════════════════════════════════
+
+CHAIN_LABELS = {
+    "base": ("🔵", "Base"),
+    "polygon": ("🟣", "Polygon"),
+    "bnb": ("🟡", "BNB Chain"),
+    "solana": ("🟢", "Solana"),
+}
+
 
 @router.message(Command("wallet"))
 async def cmd_wallet(message: Message):
@@ -586,11 +681,15 @@ async def cmd_wallet(message: Message):
 
     buttons = []
     for a in agents:
-        addr = get_wallet_address(a.id)
-        if addr:
+        evm_addr = get_wallet_address(a.id)
+        sol_addr = get_solana_wallet_address(a.id)
+        if evm_addr or sol_addr:
+            label = f"📊 {a.name}"
+            if evm_addr:
+                label += f" — EVM: {evm_addr[:6]}...{evm_addr[-4:]}"
             buttons.append([InlineKeyboardButton(
-                text=f"📊 {a.name} — {addr[:6]}...{addr[-4:]}",
-                callback_data=f"winfo:{a.id}"
+                text=label,
+                callback_data=f"wchains:{a.id}"
             )])
         else:
             buttons.append([InlineKeyboardButton(
@@ -599,11 +698,31 @@ async def cmd_wallet(message: Message):
             )])
 
     await message.answer(
-        "🔗 <b>On-Chain Wallets</b>\n\n"
-        "Each agent can have a USDC wallet on Base network.\n"
-        "Receive USDC directly, or use the API to send payments.",
+        "🔗 <b>On-Chain Wallets (Multi-Chain)</b>\n\n"
+        "Each agent can have wallets on:\n"
+        "🔵 Base  🟣 Polygon  🟡 BNB Chain  🟢 Solana\n\n"
+        "EVM chains share the same address. Solana has a separate one.",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
+
+
+@router.callback_query(F.data.startswith("wchains:"))
+async def callback_wallet_chains(callback: CallbackQuery):
+    """Show chain selection for an agent's wallet."""
+    agent_id = callback.data.split(":")[1]
+
+    buttons = []
+    for chain_key, (emoji, name) in CHAIN_LABELS.items():
+        buttons.append([InlineKeyboardButton(
+            text=f"{emoji} {name}",
+            callback_data=f"winfo:{agent_id}:{chain_key}"
+        )])
+
+    await callback.message.edit_text(
+        "🔗 <b>Select chain to view balance:</b>",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+    )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("wcreate:"))
@@ -618,11 +737,16 @@ async def callback_create_wallet(callback: CallbackQuery):
         await callback.answer("Agent not found", show_alert=True)
         return
 
-    await callback.message.edit_text("⏳ Creating wallet on Base network...")
+    await callback.message.edit_text("⏳ Creating wallets (EVM + Solana)...")
 
     try:
-        wallet_info = create_agent_wallet(agent_id)
-        address = wallet_info["address"]
+        # Create EVM wallet (works on Base, Polygon, BNB)
+        evm_info = create_agent_wallet(agent_id)
+        evm_address = evm_info["address"]
+
+        # Create Solana wallet
+        sol_info = create_solana_wallet(agent_id)
+        sol_address = sol_info["address"]
 
         # Update agent's wallet record in DB
         async with async_session() as db:
@@ -633,31 +757,24 @@ async def callback_create_wallet(callback: CallbackQuery):
             wallet = result.scalar_one_or_none()
             if wallet:
                 wallet.wallet_type = "usdc"
-                wallet.address = address
+                wallet.address = evm_address
             else:
                 wallet = Wallet(
                     agent_id=agent_id,
                     wallet_type="usdc",
-                    address=address,
+                    address=evm_address,
                 )
                 db.add(wallet)
             await db.commit()
 
-        network_label = "Base Sepolia (testnet)" if "sepolia" in wallet_info["network"] else "Base Mainnet"
         await callback.message.edit_text(
-            f"✅ <b>Wallet Created!</b>\n\n"
-            f"Agent: {agent.name}\n"
-            f"Network: {network_label}\n"
-            f"Address:\n<code>{address}</code>\n\n"
-            f"You can now receive USDC at this address.\n"
-            f"Check balance with /wallet"
-        )
-    except ValueError as e:
-        await callback.message.edit_text(
-            f"⚠️ <b>CDP API keys needed</b>\n\n"
-            f"To create on-chain wallets, you need Coinbase Developer Platform API keys.\n"
-            f"Get them free at: https://portal.cdp.coinbase.com\n\n"
-            f"Error: {e}"
+            f"✅ <b>Wallets Created!</b>\n\n"
+            f"Agent: <b>{agent.name}</b>\n\n"
+            f"🔵🟣🟡 <b>EVM Address</b> (Base/Polygon/BNB):\n"
+            f"<code>{evm_address}</code>\n\n"
+            f"🟢 <b>Solana Address</b>:\n"
+            f"<code>{sol_address}</code>\n\n"
+            f"Check balances with /wallet"
         )
     except Exception as e:
         logger.error(f"Wallet creation failed: {e}", exc_info=True)
@@ -668,7 +785,9 @@ async def callback_create_wallet(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("winfo:"))
 async def callback_wallet_info(callback: CallbackQuery):
-    agent_id = callback.data.split(":")[1]
+    parts = callback.data.split(":")
+    agent_id = parts[1]
+    chain = parts[2] if len(parts) > 2 else "base"
 
     async with async_session() as db:
         result = await db.execute(select(Agent).where(Agent.id == agent_id))
@@ -678,20 +797,39 @@ async def callback_wallet_info(callback: CallbackQuery):
         await callback.answer("Agent not found", show_alert=True)
         return
 
-    address = get_wallet_address(agent_id)
-    if not address:
-        await callback.answer("No wallet found", show_alert=True)
-        return
+    emoji, chain_name = CHAIN_LABELS.get(chain, ("🔵", chain))
 
-    balance_info = get_wallet_balance(agent_id)
+    if chain == "solana":
+        address = get_solana_wallet_address(agent_id)
+        if not address:
+            # Auto-create
+            sol_info = create_solana_wallet(agent_id)
+            address = sol_info["address"]
+        balance_info = get_solana_balance(agent_id)
+        native_token = "SOL"
+        native_balance = balance_info.get("balance_sol", "0")
+    else:
+        address = get_wallet_address(agent_id)
+        if not address:
+            evm_info = create_agent_wallet(agent_id, chain=chain)
+            address = evm_info["address"]
+        balance_info = get_wallet_balance(agent_id, chain=chain)
+        native_token = balance_info.get("native_token", "ETH")
+        native_balance = balance_info.get("balance_native", "0")
+
+    usdc_balance = balance_info.get("balance_usdc", "0")
+    explorer = balance_info.get("explorer", "")
+
+    buttons = [[InlineKeyboardButton(text="← Back to chains", callback_data=f"wchains:{agent_id}")]]
 
     await callback.message.edit_text(
-        f"🔗 <b>{agent.name} — Wallet</b>\n\n"
+        f"{emoji} <b>{agent.name} — {chain_name}</b>\n\n"
         f"Address:\n<code>{address}</code>\n\n"
-        f"💰 ETH: {balance_info.get('balance_eth', '0')}\n"
-        f"💵 USDC: {balance_info.get('balance_usdc', '0')}\n"
+        f"💰 {native_token}: {native_balance}\n"
+        f"💵 USDC: {usdc_balance}\n"
         f"🌐 Network: {balance_info.get('network', 'N/A')}\n\n"
-        f"Send USDC to this address on Base to fund on-chain."
+        f"Send {native_token} or USDC to this address on {chain_name}.",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
     await callback.answer()
 

@@ -1,0 +1,128 @@
+{
+  "name": "agentpay",
+  "description": "Manage AI agent wallet — check balance, spend, get transactions, transfer funds, and interact with on-chain wallets.",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "agentpay_balance",
+      "description": "Check your agent's current balance, daily limits, and spending info.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "agentpay_spend",
+      "description": "Spend from your agent's wallet. Deducts the amount and returns a transaction receipt.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "Amount in USD to spend"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this payment is for"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "description": "Optional unique key to prevent duplicate charges"
+          }
+        },
+        "required": ["amount", "description"]
+      }
+    },
+    {
+      "name": "agentpay_transactions",
+      "description": "Get recent transactions for your agent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "default": 10,
+            "description": "Maximum number of transactions to return (max 100)"
+          }
+        }
+      }
+    },
+    {
+      "name": "agentpay_refund",
+      "description": "Refund a previous spend transaction. Credits the amount back.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "description": "ID of the transaction to refund"
+          }
+        },
+        "required": ["transaction_id"]
+      }
+    },
+    {
+      "name": "agentpay_transfer",
+      "description": "Transfer funds to another agent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "to_agent_id": {
+            "type": "string",
+            "description": "Target agent's ID"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount in USD to transfer"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description for the transfer"
+          }
+        },
+        "required": ["to_agent_id", "amount"]
+      }
+    },
+    {
+      "name": "agentpay_wallet",
+      "description": "Get on-chain wallet address and balance for a specific chain.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "chain": {
+            "type": "string",
+            "enum": ["base", "polygon", "bnb", "solana"],
+            "default": "base",
+            "description": "Blockchain network"
+          }
+        }
+      }
+    },
+    {
+      "name": "agentpay_chains",
+      "description": "List all supported blockchain networks.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "agentpay_x402_pay",
+      "description": "Pay for an x402-gated resource using the agent's on-chain wallet.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The x402-gated resource URL"
+          },
+          "max_amount": {
+            "type": "number",
+            "description": "Maximum price willing to pay in USD (default 1.0)"
+          }
+        },
+        "required": ["url"]
+      }
+    }
+  ]
+}

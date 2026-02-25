@@ -21,8 +21,12 @@ from starlette.responses import JSONResponse, FileResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
 from models.database import get_db, init_db
 from models.schema import Agent, User, Transaction, PlatformRevenue
-from core.wallet import get_agent_by_api_key, spend, get_agent_transactions, get_daily_spent, refund, transfer_between_agents
-from providers.local_wallet import get_wallet_address, get_wallet_balance, send_usdc, send_eth
+from core.wallet import get_agent_by_api_key, spend, get_agent_transactions, get_daily_spent, refund, transfer_between_agents, hash_api_key, rotate_api_key
+from providers.local_wallet import get_wallet_address, get_wallet_balance, send_usdc, send_eth, send_native, CHAIN_CONFIGS, SUPPORTED_EVM_CHAINS, get_all_chain_balances
+from providers.solana_wallet import (
+    create_solana_wallet, get_solana_wallet_address, get_solana_balance,
+    send_sol, send_solana_usdc,
+)
 from providers.lithic_card import get_card_details, get_card_transactions
 from contextlib import asynccontextmanager
 import jwt as pyjwt
@@ -36,6 +40,39 @@ logging.basicConfig(
 logger = logging.getLogger("agentpay.api")
 
 limiter = Limiter(key_func=get_remote_address)
+
+
+# ═══════════════════════════════════════
+# PER-API-KEY RATE LIMITER (in-memory)
+# ═══════════════════════════════════════
+
+import collections
+import threading
+
+_api_key_requests: dict[str, collections.deque] = {}
+_rate_lock = threading.Lock()
+API_KEY_RATE_LIMIT = 60  # requests per minute
+API_KEY_RATE_WINDOW = 60  # seconds
+
+
+def _check_api_key_rate_limit(api_key: str) -> bool:
+    """Return True if allowed, False if rate-limited. Uses hash to avoid storing raw keys in memory."""
+    now = time.time()
+    cutoff = now - API_KEY_RATE_WINDOW
+    # Use hash so raw API keys never sit in memory dict
+    key_id = hashlib.sha256(api_key.encode()).hexdigest()[:16]
+    with _rate_lock:
+        dq = _api_key_requests.get(key_id)
+        if dq is None:
+            dq = collections.deque()
+            _api_key_requests[key_id] = dq
+        # Evict old entries
+        while dq and dq[0] < cutoff:
+            dq.popleft()
+        if len(dq) >= API_KEY_RATE_LIMIT:
+            return False
+        dq.append(now)
+        return True
 
 
 @asynccontextmanager
@@ -54,9 +91,18 @@ app = FastAPI(
 )
 
 # CORS for Mini App + dev
+ALLOWED_ORIGINS = [
+    "https://leofundmybot.dev",
+    "https://web.telegram.org",
+    "https://t.me",
+    "http://localhost:3000",  # dev
+    "http://localhost:8080",  # dev
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.telegram\.org",  # Telegram Mini App webviews
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -69,6 +115,11 @@ async def log_requests(request: Request, call_next):
     start = _time.time()
     response = await call_next(request)
     duration = _time.time() - start
+    # Security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
     logger.info(f"{request.method} {request.url.path} → {response.status_code} ({duration:.3f}s)")
     return response
 
@@ -94,6 +145,8 @@ async def get_agent_auth(
     x_api_key: str = Header(..., alias="X-API-Key"),
     db: AsyncSession = Depends(get_db),
 ) -> tuple[Agent, AsyncSession]:
+    if not _check_api_key_rate_limit(x_api_key):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded: 60 requests/minute per API key")
     agent = await get_agent_by_api_key(db, x_api_key)
     if not agent:
         raise HTTPException(status_code=401, detail="Invalid API key")
@@ -321,19 +374,87 @@ async def do_transfer(req: TransferRequest, request: Request, auth: tuple = Depe
 
 
 # ═══════════════════════════════════════
-# ON-CHAIN WALLET ENDPOINTS
+# KEY ROTATION ENDPOINT
+# ═══════════════════════════════════════
+
+class RotateKeyResponse(BaseModel):
+    success: bool
+    new_api_key: str | None = None
+    key_prefix: str | None = None
+    error: str | None = None
+
+
+@app.post("/v1/agent/rotate-key", response_model=RotateKeyResponse)
+@limiter.limit("5/minute")
+async def api_rotate_key(request: Request, auth: tuple = Depends(get_agent_auth)):
+    """Rotate the API key for this agent. Returns the new key ONCE. Old key stops working immediately."""
+    agent, db = auth
+    new_key = await rotate_api_key(db, agent)
+    return RotateKeyResponse(
+        success=True,
+        new_api_key=new_key,
+        key_prefix=new_key[:8] + "...",
+    )
+
+
+# ═══════════════════════════════════════
+# CHAINS ENDPOINT
+# ═══════════════════════════════════════
+
+@app.get("/v1/chains")
+async def list_chains():
+    """List all supported blockchain networks."""
+    chains = []
+    # EVM chains
+    for chain_key, config in CHAIN_CONFIGS.items():
+        chains.append({
+            "id": chain_key,
+            "name": config["name"],
+            "type": "evm",
+            "native_token": config["native_token"],
+            "usdc_supported": True,
+            "explorer": config["explorer"],
+        })
+    # Solana
+    chains.append({
+        "id": "solana",
+        "name": "Solana",
+        "type": "solana",
+        "native_token": "SOL",
+        "usdc_supported": True,
+        "explorer": "https://solscan.io",
+    })
+    return {"chains": chains}
+
+
+# ═══════════════════════════════════════
+# ON-CHAIN WALLET ENDPOINTS (Multi-Chain)
 # ═══════════════════════════════════════
 
 class WalletResponse(BaseModel):
     address: str | None
     network: str | None
+    chain: str | None = None
     balance: str | None = None
+
+
+class MultiChainWalletResponse(BaseModel):
+    evm_address: str | None = None
+    solana_address: str | None = None
+    chains: list[dict] = []
 
 
 class SendUsdcRequest(BaseModel):
     to_address: str
     amount: float = Field(gt=0, le=10000)
+    chain: str = Field("base", description="Chain to send on: base, polygon, bnb, solana")
     description: str | None = None
+
+
+class SendNativeRequest(BaseModel):
+    to_address: str
+    amount: float = Field(gt=0, le=100)
+    chain: str = Field("base", description="Chain to send on: base, polygon, bnb, solana")
 
 
 class SendUsdcResponse(BaseModel):
@@ -341,19 +462,47 @@ class SendUsdcResponse(BaseModel):
     tx_hash: str | None = None
     amount: float | None = None
     to: str | None = None
+    chain: str | None = None
     error: str | None = None
 
 
-@app.get("/v1/wallet", response_model=WalletResponse)
-async def wallet_info(auth: tuple = Depends(get_agent_auth)):
+class SendNativeResponse(BaseModel):
+    success: bool
+    tx_hash: str | None = None
+    amount: float | None = None
+    to: str | None = None
+    chain: str | None = None
+    native_token: str | None = None
+    error: str | None = None
+
+
+@app.get("/v1/wallet")
+async def wallet_info(chain: str = "base", auth: tuple = Depends(get_agent_auth)):
+    """Get wallet info for a specific chain. Default: base (backward compatible)."""
     agent, db = auth
+
+    if chain == "solana":
+        address = get_solana_wallet_address(agent.id)
+        if not address:
+            wallet_result = create_solana_wallet(agent.id)
+            address = wallet_result["address"]
+        balance_info = get_solana_balance(agent.id)
+        return {
+            "address": address,
+            "network": balance_info.get("network"),
+            "chain": "solana",
+            "balance_sol": balance_info.get("balance_sol", "0"),
+            "balance_usdc": balance_info.get("balance_usdc", "0"),
+        }
+
+    # EVM chains (base, polygon, bnb)
     address = get_wallet_address(agent.id)
 
-    # Auto-create wallet if none exists
+    # Auto-create EVM wallet if none exists
     if not address:
         from providers.local_wallet import create_agent_wallet
         from models.schema import Wallet
-        wallet_result = create_agent_wallet(agent.id)
+        wallet_result = create_agent_wallet(agent.id, chain=chain)
         address = wallet_result["address"]
         # Check if DB wallet row exists (may already exist from bot)
         result = await db.execute(
@@ -363,25 +512,78 @@ async def wallet_info(auth: tuple = Depends(get_agent_auth)):
         if existing:
             existing.wallet_type = "usdc"
             existing.address = address
+            existing.chain = chain
         else:
-            db.add(Wallet(agent_id=agent.id, wallet_type="usdc", address=address))
+            db.add(Wallet(agent_id=agent.id, wallet_type="usdc", address=address, chain=chain))
         await db.commit()
 
-    balance_info = get_wallet_balance(agent.id)
+    balance_info = get_wallet_balance(agent.id, chain=chain)
     return WalletResponse(
         address=address,
         network=balance_info.get("network"),
+        chain=chain,
         balance=balance_info.get("balance_eth"),
+    )
+
+
+@app.get("/v1/wallet/all")
+async def wallet_all_chains(auth: tuple = Depends(get_agent_auth)):
+    """Get wallet info across all supported chains."""
+    agent, db = auth
+
+    evm_address = get_wallet_address(agent.id)
+    solana_address = get_solana_wallet_address(agent.id)
+
+    chain_balances = []
+
+    # EVM chains (same address across all)
+    if evm_address:
+        for chain_key in SUPPORTED_EVM_CHAINS:
+            balance = get_wallet_balance(agent.id, chain=chain_key)
+            chain_balances.append(balance)
+
+    # Solana
+    if solana_address:
+        balance = get_solana_balance(agent.id)
+        chain_balances.append(balance)
+
+    return MultiChainWalletResponse(
+        evm_address=evm_address,
+        solana_address=solana_address,
+        chains=chain_balances,
     )
 
 
 @app.post("/v1/wallet/send-usdc", response_model=SendUsdcResponse)
 @limiter.limit("10/minute")
 async def api_send_usdc(req: SendUsdcRequest, request: Request, auth: tuple = Depends(get_agent_auth)):
+    """Send USDC on the specified chain. Default: base."""
     agent, db = auth
 
-    result = await send_usdc(agent.id, req.to_address, req.amount)
+    if req.chain == "solana":
+        result = await send_solana_usdc(agent.id, req.to_address, req.amount)
+    elif req.chain in SUPPORTED_EVM_CHAINS:
+        result = await send_usdc(agent.id, req.to_address, req.amount, chain=req.chain)
+    else:
+        return SendUsdcResponse(success=False, error=f"Unsupported chain: {req.chain}")
+
     return SendUsdcResponse(**result)
+
+
+@app.post("/v1/wallet/send-native", response_model=SendNativeResponse)
+@limiter.limit("10/minute")
+async def api_send_native(req: SendNativeRequest, request: Request, auth: tuple = Depends(get_agent_auth)):
+    """Send native token (ETH/POL/BNB/SOL) on the specified chain."""
+    agent, db = auth
+
+    if req.chain == "solana":
+        result = await send_sol(agent.id, req.to_address, req.amount)
+    elif req.chain in SUPPORTED_EVM_CHAINS:
+        result = await send_native(agent.id, req.to_address, req.amount, chain=req.chain)
+    else:
+        return SendNativeResponse(success=False, error=f"Unsupported chain: {req.chain}")
+
+    return SendNativeResponse(**result)
 
 
 # ═══════════════════════════════════════
@@ -903,10 +1105,11 @@ async def miniapp_toggle_card(
 @app.get("/v1/miniapp/agents/{agent_id}/wallet")
 async def miniapp_agent_wallet(
     agent_id: str,
+    chain: str = "base",
     user: dict = Depends(get_miniapp_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get on-chain wallet info for an agent."""
+    """Get on-chain wallet info for an agent on a specific chain."""
     telegram_id = user.get("telegram_id")
 
     result = await db.execute(
@@ -919,27 +1122,83 @@ async def miniapp_agent_wallet(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
 
+    if chain == "solana":
+        address = get_solana_wallet_address(agent.id)
+        if not address:
+            wallet_result = create_solana_wallet(agent.id)
+            address = wallet_result["address"]
+        balance_info = get_solana_balance(agent.id)
+        return {
+            "address": address,
+            "network": balance_info.get("network"),
+            "chain": "solana",
+            "balance_sol": balance_info.get("balance_sol", "0"),
+            "balance_usdc": balance_info.get("balance_usdc", "0"),
+        }
+
+    # EVM chain
     address = get_wallet_address(agent.id)
     if not address:
         from providers.local_wallet import create_agent_wallet
         from models.schema import Wallet
-        wallet_result = create_agent_wallet(agent.id)
+        wallet_result = create_agent_wallet(agent.id, chain=chain)
         address = wallet_result["address"]
         result2 = await db.execute(select(Wallet).where(Wallet.agent_id == agent.id))
         existing = result2.scalar_one_or_none()
         if existing:
             existing.wallet_type = "usdc"
             existing.address = address
+            existing.chain = chain
         else:
-            db.add(Wallet(agent_id=agent.id, wallet_type="usdc", address=address))
+            db.add(Wallet(agent_id=agent.id, wallet_type="usdc", address=address, chain=chain))
         await db.commit()
 
-    balance_info = get_wallet_balance(agent.id)
+    balance_info = get_wallet_balance(agent.id, chain=chain)
+    config = CHAIN_CONFIGS.get(chain, {})
     return {
         "address": address,
         "network": balance_info.get("network"),
-        "balance_eth": balance_info.get("balance_eth", "0.00"),
-        "balance_usdc": balance_info.get("balance_usdc", "0.00"),
+        "chain": chain,
+        "native_token": config.get("native_token", "ETH"),
+        "balance_native": balance_info.get("balance_native", "0"),
+        "balance_eth": balance_info.get("balance_eth", "0"),  # backward compat
+        "balance_usdc": balance_info.get("balance_usdc", "0"),
+    }
+
+
+@app.get("/v1/miniapp/agents/{agent_id}/wallet/all")
+async def miniapp_agent_wallet_all(
+    agent_id: str,
+    user: dict = Depends(get_miniapp_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get wallet balances across all chains for an agent."""
+    telegram_id = user.get("telegram_id")
+
+    result = await db.execute(
+        select(Agent).join(User).where(
+            Agent.id == agent_id,
+            User.telegram_id == telegram_id,
+        )
+    )
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    evm_address = get_wallet_address(agent.id)
+    solana_address = get_solana_wallet_address(agent.id)
+
+    chains = []
+    if evm_address:
+        for ck in SUPPORTED_EVM_CHAINS:
+            chains.append(get_wallet_balance(agent.id, chain=ck))
+    if solana_address:
+        chains.append(get_solana_balance(agent.id))
+
+    return {
+        "evm_address": evm_address,
+        "solana_address": solana_address,
+        "chains": chains,
     }
 
 

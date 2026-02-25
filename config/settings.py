@@ -12,13 +12,16 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://agentpay:agentpay
 # Redis
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-# API
-API_SECRET = os.getenv("API_SECRET", "agentpay-secret-change-me")
-API_HOST = os.getenv("API_HOST", "0.0.0.0")
-API_PORT = int(os.getenv("API_PORT", "8080"))
-
 # Environment
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+# API
+API_SECRET = os.getenv("API_SECRET", "agentpay-secret-change-me")
+if API_SECRET == "agentpay-secret-change-me" and ENVIRONMENT == "production":
+    import warnings
+    warnings.warn("⚠️ CRITICAL: Using default API_SECRET in production! Set API_SECRET in .env", stacklevel=2)
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("API_PORT", "8080"))
 
 # Stars rate: 1 Star ≈ $0.013 for developers
 STARS_TO_USD_RATE = 0.013

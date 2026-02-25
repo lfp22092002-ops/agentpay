@@ -1,0 +1,15 @@
+[Unit]
+Description=AgentPay Telegram Bot
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User=leo
+WorkingDirectory=/home/leo/.openclaw/workspace/projects/agentpay
+Environment=PATH=/home/leo/.openclaw/workspace/projects/agentpay/venv/bin:/usr/bin:/bin
+ExecStart=/home/leo/.openclaw/workspace/projects/agentpay/venv/bin/python -m bot.main
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

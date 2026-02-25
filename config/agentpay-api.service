@@ -1,0 +1,15 @@
+[Unit]
+Description=AgentPay REST API
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User=leo
+WorkingDirectory=/home/leo/.openclaw/workspace/projects/agentpay
+Environment=PATH=/home/leo/.openclaw/workspace/projects/agentpay/venv/bin:/usr/bin:/bin
+ExecStart=/home/leo/.openclaw/workspace/projects/agentpay/venv/bin/uvicorn api.main:app --host 127.0.0.1 --port 8080
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
