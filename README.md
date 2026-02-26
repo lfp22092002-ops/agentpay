@@ -1,137 +1,191 @@
-# AgentPay 💳🤖 — Fund Your AI Agents
+# AgentPay 💳🤖 — Give Your AI Agent a Wallet
 
-Give your AI agents their own wallet. Let them spend autonomously via API. Built on Telegram, powered by on-chain USDC on Base.
+The payment layer for autonomous AI agents. Fund via Telegram Stars or crypto, set spending rules, let your agent operate independently.
 
 [![Telegram Bot](https://img.shields.io/badge/Telegram-@FundmyAIbot-blue?logo=telegram)](https://t.me/FundmyAIbot)
 [![Website](https://img.shields.io/badge/Website-leofundmybot.dev-green)](https://leofundmybot.dev)
-[![Docs](https://img.shields.io/badge/Docs-API%20Reference-orange)](https://leofundmybot.dev/docs-site/)
+[![API Docs](https://img.shields.io/badge/Docs-OpenAPI-orange)](https://leofundmybot.dev/docs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## The Problem
+## Why AgentPay?
 
-AI agents can browse the web, write code, manage servers — but the moment they need to **spend money**, a human has to step in. Every paid API call, every purchase, every transaction requires manual approval. That's a bottleneck that kills agent autonomy.
+AI agents can browse, code, deploy — but **can't spend money** without a human in the loop. AgentPay fixes that.
 
-## The Solution
-
-AgentPay is a Telegram-native payment platform that gives any AI agent its own wallet. Fund it, set spending rules, and let your agent operate independently.
-
-- **Fund with Telegram Stars** → Agent gets a balance → Agent spends via API
-- **On-chain USDC wallets** on Base network for crypto-native workflows
-- **2% fee** per transaction — free to set up and try
+| Problem | AgentPay Solution |
+|---------|-------------------|
+| Agent needs to pay for an API | Autonomous spending via REST API |
+| No on-chain wallet for agents | Multi-chain USDC wallets (Base, Polygon, BNB, Solana) |
+| Agents can't hold or transfer funds | Agent-to-agent transfers, refunds, webhooks |
+| Payment UIs don't fit agent workflows | Pure API + Python SDK + MCP tools |
+| Expensive/complex infrastructure | Self-hosted, open-source, 2% tx fee |
 
 ---
 
-## Quick Start
+## Quick Start — 5 Minutes
 
-### 1. Create an Agent
-
-Open [@FundmyAIbot](https://t.me/FundmyAIbot) in Telegram and create a new agent. You'll get an API key.
-
-### 2. Fund the Wallet
-
-Send Telegram Stars to your agent's wallet through the bot, or deposit USDC to the on-chain Base wallet.
-
-### 3. Use the SDK
-
-```bash
-pip install agentpay
+### 1. Create Agent → Get API Key
 ```
+Open @FundmyAIbot in Telegram → /newagent → Copy your API key (shown once)
+```
+
+### 2. Fund It
+Send Telegram Stars through the bot, or deposit USDC to the agent's Base wallet.
+
+### 3. Let It Spend
 
 ```python
 from agentpay import AgentPay
 
-# Initialize with your API key
-client = AgentPay(api_key="your_api_key_here")
+client = AgentPay(api_key="ap_xxxx...")
 
 # Check balance
 balance = client.get_balance()
-print(f"Agent balance: {balance.amount} {balance.currency}")
 
-# Spend funds
-tx = client.spend(
-    amount=5.00,
-    recipient="api-provider-wallet",
-    description="GPT-4 API call batch",
-    metadata={"batch_id": "abc123"}
-)
-print(f"Transaction: {tx.id} — Status: {tx.status}")
-
-# Set up a webhook for balance changes
-client.create_webhook(
-    url="https://your-server.com/webhook",
-    events=["balance.updated", "transaction.completed"]
-)
+# Spend
+tx = client.spend(amount=5.00, recipient="provider-wallet", description="GPT-4 batch")
 
 # Transfer between agents
-client.transfer(
-    to_agent="agent_456",
-    amount=10.00,
-    description="Splitting compute costs"
-)
+client.transfer(to_agent="agent_456", amount=10.00)
+
+# Webhook for real-time events
+client.create_webhook(url="https://your-server.com/hook", events=["transaction.completed"])
 ```
 
-### 4. Use the REST API Directly
-
+Or use the REST API directly:
 ```bash
-# Check balance
-curl -X GET https://leofundmybot.dev/api/balance \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Create a spend transaction
 curl -X POST https://leofundmybot.dev/api/spend \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer ap_xxxx..." \
   -H "Content-Type: application/json" \
-  -d '{
-    "amount": 5.00,
-    "recipient": "provider-id",
-    "description": "API usage"
-  }'
+  -d '{"amount": 5.00, "recipient": "provider-id", "description": "API usage"}'
 ```
 
 ---
 
 ## Features
 
-| Feature | Description |
-|---------|-------------|
-| 🔑 **API-First** | Full REST API — agents spend programmatically |
-| ⭐ **Telegram Stars** | Fund wallets with Telegram's native currency |
-| 🔗 **USDC on Base** | On-chain wallets for crypto workflows |
-| 🔔 **Webhooks** | Real-time notifications for balance changes and transactions |
-| ✅ **Approval Workflows** | Set spend limits, require human approval above thresholds |
-| 💸 **Transfers** | Move funds between agents |
-| ↩️ **Refunds** | Reverse transactions when needed |
-| 📊 **CSV Export** | Download transaction history for accounting |
-| 🌐 **x402 Protocol** | HTTP-native payments for the open web |
-| 📱 **Mini App Dashboard** | Manage everything inside Telegram |
+**Payments**
+- ⭐ Telegram Stars funding (instant, in-app)
+- 🔗 Multi-chain USDC wallets — Base, Polygon, BNB Chain, Solana
+- 💸 Agent-to-agent transfers
+- ↩️ Refunds & transaction reversal
+- 🌐 x402 protocol support (HTTP-native payments)
+
+**Security**
+- 🔐 SHA-256 hashed API keys (Stripe-style — shown once, never stored)
+- 🔑 Key rotation endpoint
+- 🛡️ Fernet+PBKDF2 encrypted wallet keys at rest
+- 🚦 Per-key rate limiting (60 req/min)
+- 🔒 CORS lockdown + security headers (HSTS, CSP, X-Frame-Options)
+
+**Developer Experience**
+- 📚 Full OpenAPI docs at `/docs` and `/redoc`
+- 🐍 Python SDK (sync + async, Pydantic v2 models)
+- 🤖 MCP tool definitions (8 tools for agent frameworks)
+- 🔔 Webhooks with HMAC-SHA256 signatures
+- ✅ Idempotent operations
+- 📊 CSV export for accounting
+
+**Control**
+- ✅ Approval workflows — require human sign-off above spending thresholds
+- 📱 Telegram Mini App dashboard
+- 🌐 Landing page + docs site
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────┐
-│   Telegram Bot       │  ← User creates agent, funds wallet
-│   (@FundmyAIbot)     │
-└──────────┬──────────┘
-           │
-┌──────────▼──────────┐
-│   AgentPay API       │  ← REST API for agent operations
-│   (leofundmybot.dev) │
-└──────┬────────┬─────┘
-       │        │
-┌──────▼──┐ ┌──▼──────────┐
-│ Telegram │ │ Base Network │
-│ Stars    │ │ (USDC)       │
-│ Ledger   │ │ On-chain     │
-└──────────┘ └──────────────┘
+Telegram Bot (@FundmyAIbot)
+    ↓ creates agents, funds wallets
+AgentPay API (FastAPI, 29 endpoints)
+    ↓                  ↓
+Telegram Stars    Multi-chain USDC
+(internal ledger)  (Base/Polygon/BNB/Solana)
+    ↓                  ↓
+    → Webhooks push events to your agent in real-time
 ```
 
-1. **Telegram Bot** handles user interaction — create agents, fund wallets, view dashboards
-2. **AgentPay API** processes all programmatic operations — balance checks, spends, transfers
-3. **Dual settlement** — Telegram Stars for instant in-app payments, USDC on Base for on-chain settlement
-4. **Webhooks** push transaction events to your agent's server in real-time
+**Stack**: Python (aiogram + FastAPI), PostgreSQL, Alembic, Cloudflare Tunnel
+
+---
+
+## Self-Hosting
+
+```bash
+git clone https://github.com/lfp22092002-ops/agentpay.git
+cd agentpay
+cp .env.example .env  # Configure your keys
+pip install -r requirements.txt
+alembic upgrade head
+uvicorn api.main:app --host 0.0.0.0 --port 8080
+```
+
+Requires: Python 3.11+, PostgreSQL, a Telegram Bot Token.
+
+---
+
+## API Endpoints (29)
+
+| Category | Endpoints |
+|----------|-----------|
+| Agent | Create, get, list, update, delete, rotate API key |
+| Balance | Get balance, deposit, spend, transfer, refund |
+| Webhooks | Create, list, delete, test |
+| Wallets | Get addresses (Base, Polygon, BNB, Solana) |
+| Chains | List supported chains, chain status |
+| Export | CSV transaction history |
+| x402 | Probe, pay (HTTP 402 payment flow) |
+| Health | Status, version |
+
+Full interactive docs: [leofundmybot.dev/docs](https://leofundmybot.dev/docs)
+
+---
+
+## MCP Tools
+
+AgentPay ships with MCP (Model Context Protocol) tool definitions so any AI agent framework can use it natively:
+
+```json
+{
+  "tools": [
+    "agentpay_get_balance",
+    "agentpay_spend", 
+    "agentpay_transfer",
+    "agentpay_list_transactions",
+    "agentpay_create_webhook",
+    "agentpay_get_wallet_address",
+    "agentpay_check_approval",
+    "agentpay_x402_pay"
+  ]
+}
+```
+
+Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
+
+---
+
+## Pricing
+
+| | |
+|---|---|
+| **Setup** | Free |
+| **Transactions** | 2% fee |
+| **Monthly** | $0 |
+| **Self-hosted** | Free forever |
+
+---
+
+## Roadmap
+
+- [ ] Python SDK on PyPI (`pip install agentpay`)
+- [ ] LangChain / CrewAI native tool wrappers
+- [ ] Virtual Visa cards via Lithic
+- [ ] Telegram Stars production payments
+- [ ] Agent identity system (KYA — Know Your Agent)
+- [ ] Payee whitelists
+- [ ] Google AP2 + Stripe Agentic Commerce compatibility
 
 ---
 
@@ -139,29 +193,22 @@ curl -X POST https://leofundmybot.dev/api/spend \
 
 - 🤖 **Bot**: [@FundmyAIbot](https://t.me/FundmyAIbot)
 - 🌐 **Website**: [leofundmybot.dev](https://leofundmybot.dev)
-- 📚 **API Docs**: [leofundmybot.dev/docs-site](https://leofundmybot.dev/docs-site/)
-- 🐍 **Python SDK**: `pip install agentpay` *(coming soon)*
-
----
-
-## Pricing
-
-- **Setup**: Free
-- **Transactions**: 2% fee per spend
-- **No monthly fees**, no minimums
+- 📚 **API Docs**: [leofundmybot.dev/docs](https://leofundmybot.dev/docs)
+- 🐍 **SDK**: `sdk/agentpay/`
+- 🔧 **MCP Tools**: `mcp/`
 
 ---
 
 ## Contributing
 
-Contributions welcome! Open an issue or submit a PR.
+PRs welcome. Open an issue first for big changes.
 
 ---
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE)
 
 ---
 
-Built with ❤️ for the agent economy. Because agents deserve wallets too.
+*Built for the agent economy. Because autonomous agents deserve their own wallets.*
