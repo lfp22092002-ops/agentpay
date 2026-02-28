@@ -12,7 +12,8 @@ from urllib.parse import parse_qs, unquote
 from fastapi import FastAPI, Depends, HTTPException, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func
+from sqlalchemy import select, func, cast, Date
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -20,7 +21,7 @@ from slowapi.errors import RateLimitExceeded
 from starlette.responses import JSONResponse, FileResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
 from models.database import get_db, init_db
-from models.schema import Agent, User, Transaction, PlatformRevenue
+from models.schema import Agent, User, Transaction, PlatformRevenue, AgentIdentity
 from core.wallet import get_agent_by_api_key, spend, get_agent_transactions, get_daily_spent, refund, transfer_between_agents, hash_api_key, rotate_api_key
 from providers.local_wallet import get_wallet_address, get_wallet_balance, send_usdc, send_eth, send_native, CHAIN_CONFIGS, SUPPORTED_EVM_CHAINS, get_all_chain_balances
 from providers.solana_wallet import (
@@ -90,13 +91,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS for Mini App + dev
+# CORS — production only (no localhost)
 ALLOWED_ORIGINS = [
     "https://leofundmybot.dev",
     "https://web.telegram.org",
     "https://t.me",
-    "http://localhost:3000",  # dev
-    "http://localhost:8080",  # dev
 ]
 
 app.add_middleware(
@@ -104,8 +103,8 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS,
     allow_origin_regex=r"https://.*\.telegram\.org",  # Telegram Mini App webviews
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["X-API-Key", "Authorization", "Content-Type", "Accept"],
 )
 
 app.state.limiter = limiter
@@ -120,6 +119,12 @@ async def log_requests(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    # Hide server version
+    if "server" in response.headers:
+        del response.headers["server"]
     logger.info(f"{request.method} {request.url.path} → {response.status_code} ({duration:.3f}s)")
     return response
 
@@ -134,6 +139,17 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(
         status_code=429,
         content={"detail": "Rate limit exceeded. Slow down."},
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catch unhandled exceptions — never leak stack traces to clients."""
+    import logging
+    logging.getLogger("agentpay.api").error(f"Unhandled error on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
     )
 
 
@@ -402,7 +418,8 @@ async def api_rotate_key(request: Request, auth: tuple = Depends(get_agent_auth)
 # ═══════════════════════════════════════
 
 @app.get("/v1/chains")
-async def list_chains():
+@limiter.limit("30/minute")
+async def list_chains(request: Request):
     """List all supported blockchain networks."""
     chains = []
     # EVM chains
@@ -751,8 +768,14 @@ async def x402_pay(req: X402PayRequest, request: Request, auth: tuple = Depends(
 @limiter.limit("30/minute")
 async def x402_probe(url: str, request: Request):
     """Probe a URL to check if it's x402-gated and see pricing. No auth needed."""
+    # Sanitize URL
+    url = url.replace("\x00", "").strip()
+    if not url.startswith(("http://", "https://")) or len(url) > 2048:
+        raise HTTPException(400, "Invalid URL")
     from providers.x402_protocol import estimate_x402_cost
     result = estimate_x402_cost(url)
+    if result.get("error"):
+        raise HTTPException(502, f"Probe failed: {result['error']}")
     return X402ProbeResponse(**result)
 
 
@@ -1304,6 +1327,727 @@ async def withdraw_revenue(request: Request, db: AsyncSession = Depends(get_db))
         "total_revenue_usd": float(total_usd),
         "withdraw_to": OWNER_WALLET,
         "note": "Revenue tracked in DB. On-chain USDC withdrawal available when agent wallets hold sufficient USDC balance. Use /v1/wallet/send-usdc on agent wallets to move funds to your wallet.",
+    }
+
+
+# ═══════════════════════════════════════
+# AGENT IDENTITY (KYA) — SCHEMAS
+# ═══════════════════════════════════════
+
+VALID_CATEGORIES = {"trading", "research", "content", "automation", "defi", "analytics", "infrastructure", "social", "gaming", "other"}
+
+
+class AgentIdentityUpdate(BaseModel):
+    display_name: str = Field(..., max_length=255)
+    description: str | None = Field(None, max_length=2000)
+    homepage_url: str | None = Field(None, max_length=512)
+    logo_url: str | None = Field(None, max_length=512)
+    category: str | None = Field(None, max_length=50)
+    metadata_json: str | None = Field(None, max_length=10000)
+
+
+class AgentIdentityOut(BaseModel):
+    agent_id: str
+    display_name: str
+    description: str | None = None
+    homepage_url: str | None = None
+    logo_url: str | None = None
+    category: str | None = None
+    verified: bool = False
+    trust_score: int = 0
+    total_transactions: int = 0
+    total_volume_usd: float = 0
+    first_seen: str
+    last_active: str
+    metadata_json: str | None = None
+
+
+class TrustScoreBreakdown(BaseModel):
+    total: int
+    account_age_pts: int
+    account_age_max: int = 15
+    transaction_count_pts: int
+    transaction_count_max: int = 25
+    volume_pts: int
+    volume_max: int = 25
+    profile_completeness_pts: int
+    profile_completeness_max: int = 15
+    verified_pts: int
+    verified_max: int = 20
+    details: dict
+
+
+class DirectoryEntry(BaseModel):
+    agent_id: str
+    display_name: str
+    description: str | None = None
+    category: str | None = None
+    verified: bool = False
+    trust_score: int = 0
+    total_transactions: int = 0
+    total_volume_usd: float = 0
+    logo_url: str | None = None
+
+
+class DirectoryResponse(BaseModel):
+    agents: list[DirectoryEntry]
+    total: int
+    page: int
+    page_size: int
+
+
+# ═══════════════════════════════════════
+# AGENT IDENTITY (KYA) — TRUST SCORE CALC
+# ═══════════════════════════════════════
+
+def _calculate_trust_score(identity: AgentIdentity, agent: Agent) -> TrustScoreBreakdown:
+    """Calculate trust score (0-100) based on activity and profile."""
+    now = datetime.utcnow()
+
+    # Account age: 1pt/week, max 15
+    age_weeks = (now - agent.created_at).days / 7
+    account_age_pts = min(int(age_weeks), 15)
+
+    # Transaction count: 1pt/10 txns, max 25
+    tx_count_pts = min(identity.total_transactions // 10, 25)
+
+    # Volume: 1pt/$100, max 25
+    volume_pts = min(int(float(identity.total_volume_usd) / 100), 25)
+
+    # Profile completeness: name=5, desc=5, url=3, logo=2
+    profile_pts = 0
+    detail = {}
+    if identity.display_name:
+        profile_pts += 5
+        detail["name"] = 5
+    if identity.description:
+        profile_pts += 5
+        detail["description"] = 5
+    if identity.homepage_url:
+        profile_pts += 3
+        detail["homepage_url"] = 3
+    if identity.logo_url:
+        profile_pts += 2
+        detail["logo_url"] = 2
+    profile_pts = min(profile_pts, 15)
+
+    # Verified badge: 20 pts
+    verified_pts = 20 if identity.verified else 0
+
+    total = account_age_pts + tx_count_pts + volume_pts + profile_pts + verified_pts
+
+    return TrustScoreBreakdown(
+        total=min(total, 100),
+        account_age_pts=account_age_pts,
+        transaction_count_pts=tx_count_pts,
+        volume_pts=volume_pts,
+        profile_completeness_pts=profile_pts,
+        verified_pts=verified_pts,
+        details={
+            "account_age_weeks": round(age_weeks, 1),
+            "total_transactions": identity.total_transactions,
+            "total_volume_usd": float(identity.total_volume_usd),
+            "profile_fields": detail,
+            "verified": identity.verified,
+        },
+    )
+
+
+async def _refresh_identity_counters(db: AsyncSession, identity: AgentIdentity):
+    """Refresh total_transactions and total_volume_usd from actual transaction data."""
+    from models.schema import TransactionStatus
+    result = await db.execute(
+        select(
+            func.count(Transaction.id),
+            func.coalesce(func.sum(Transaction.amount_usd), 0),
+        ).where(
+            Transaction.agent_id == identity.agent_id,
+            Transaction.status == TransactionStatus.COMPLETED,
+        )
+    )
+    row = result.one()
+    identity.total_transactions = row[0]
+    identity.total_volume_usd = row[1]
+    identity.last_active = datetime.utcnow()
+
+
+# ═══════════════════════════════════════
+# AGENT IDENTITY (KYA) — ENDPOINTS
+# ═══════════════════════════════════════
+
+@app.get("/v1/agent/identity")
+@limiter.limit("30/minute")
+async def get_own_identity(request: Request, auth: tuple = Depends(get_agent_auth)):
+    """Get the authenticated agent's identity profile."""
+    agent, db = auth
+    result = await db.execute(
+        select(AgentIdentity).where(AgentIdentity.agent_id == agent.id)
+    )
+    identity = result.scalar_one_or_none()
+    if not identity:
+        return {"identity": None, "message": "No identity profile set. Use PUT /v1/agent/identity to create one."}
+
+    # Refresh counters
+    await _refresh_identity_counters(db, identity)
+    score = _calculate_trust_score(identity, agent)
+    identity.trust_score = score.total
+    await db.commit()
+
+    return {
+        "identity": AgentIdentityOut(
+            agent_id=identity.agent_id,
+            display_name=identity.display_name,
+            description=identity.description,
+            homepage_url=identity.homepage_url,
+            logo_url=identity.logo_url,
+            category=identity.category,
+            verified=identity.verified,
+            trust_score=identity.trust_score,
+            total_transactions=identity.total_transactions,
+            total_volume_usd=float(identity.total_volume_usd),
+            first_seen=identity.first_seen.isoformat(),
+            last_active=identity.last_active.isoformat(),
+            metadata_json=identity.metadata_json,
+        ).model_dump()
+    }
+
+
+@app.put("/v1/agent/identity")
+@limiter.limit("10/minute")
+async def upsert_identity(req: AgentIdentityUpdate, request: Request, auth: tuple = Depends(get_agent_auth)):
+    """Create or update the authenticated agent's identity profile."""
+    agent, db = auth
+
+    # Validate category
+    if req.category and req.category not in VALID_CATEGORIES:
+        raise HTTPException(400, f"Invalid category. Must be one of: {', '.join(sorted(VALID_CATEGORIES))}")
+
+    result = await db.execute(
+        select(AgentIdentity).where(AgentIdentity.agent_id == agent.id)
+    )
+    identity = result.scalar_one_or_none()
+
+    now = datetime.utcnow()
+    if identity:
+        identity.display_name = req.display_name
+        identity.description = req.description
+        identity.homepage_url = req.homepage_url
+        identity.logo_url = req.logo_url
+        identity.category = req.category
+        identity.metadata_json = req.metadata_json
+        identity.updated_at = now
+    else:
+        identity = AgentIdentity(
+            agent_id=agent.id,
+            display_name=req.display_name,
+            description=req.description,
+            homepage_url=req.homepage_url,
+            logo_url=req.logo_url,
+            category=req.category,
+            metadata_json=req.metadata_json,
+            first_seen=agent.created_at,
+            last_active=now,
+        )
+        db.add(identity)
+
+    # Refresh counters & trust score
+    await _refresh_identity_counters(db, identity)
+    score = _calculate_trust_score(identity, agent)
+    identity.trust_score = score.total
+    await db.commit()
+
+    return {
+        "success": True,
+        "identity": AgentIdentityOut(
+            agent_id=identity.agent_id,
+            display_name=identity.display_name,
+            description=identity.description,
+            homepage_url=identity.homepage_url,
+            logo_url=identity.logo_url,
+            category=identity.category,
+            verified=identity.verified,
+            trust_score=identity.trust_score,
+            total_transactions=identity.total_transactions,
+            total_volume_usd=float(identity.total_volume_usd),
+            first_seen=identity.first_seen.isoformat(),
+            last_active=identity.last_active.isoformat(),
+            metadata_json=identity.metadata_json,
+        ).model_dump()
+    }
+
+
+@app.get("/v1/agent/identity/score")
+@limiter.limit("30/minute")
+async def get_trust_score(request: Request, auth: tuple = Depends(get_agent_auth)):
+    """Get detailed trust score breakdown for the authenticated agent."""
+    agent, db = auth
+    result = await db.execute(
+        select(AgentIdentity).where(AgentIdentity.agent_id == agent.id)
+    )
+    identity = result.scalar_one_or_none()
+    if not identity:
+        raise HTTPException(404, "No identity profile. Create one with PUT /v1/agent/identity first.")
+
+    await _refresh_identity_counters(db, identity)
+    score = _calculate_trust_score(identity, agent)
+    identity.trust_score = score.total
+    await db.commit()
+
+    return score.model_dump()
+
+
+@app.get("/v1/directory")
+@limiter.limit("60/minute")
+async def agent_directory(
+    request: Request,
+    category: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+    db: AsyncSession = Depends(get_db),
+):
+    """Public agent directory — browse registered agents with optional category filter."""
+    page_size = min(max(page_size, 1), 50)
+    page = max(page, 1)
+    offset = (page - 1) * page_size
+
+    # Sanitize category — strip null bytes, limit length
+    if category:
+        category = category.replace("\x00", "").strip()
+        if len(category) > 50 or not category:
+            category = None
+
+    query = select(AgentIdentity)
+    count_query = select(func.count(AgentIdentity.id))
+
+    if category:
+        query = query.where(AgentIdentity.category == category)
+        count_query = count_query.where(AgentIdentity.category == category)
+
+    query = query.order_by(AgentIdentity.trust_score.desc()).offset(offset).limit(page_size)
+
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    result = await db.execute(query)
+    identities = result.scalars().all()
+
+    return DirectoryResponse(
+        agents=[
+            DirectoryEntry(
+                agent_id=i.agent_id,
+                display_name=i.display_name,
+                description=i.description,
+                category=i.category,
+                verified=i.verified,
+                trust_score=i.trust_score,
+                total_transactions=i.total_transactions,
+                total_volume_usd=float(i.total_volume_usd),
+                logo_url=i.logo_url,
+            )
+            for i in identities
+        ],
+        total=total,
+        page=page,
+        page_size=page_size,
+    ).model_dump()
+
+
+@app.get("/v1/directory/{agent_id}")
+@limiter.limit("60/minute")
+async def agent_public_profile(
+    agent_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get a public agent profile by agent ID."""
+    result = await db.execute(
+        select(AgentIdentity).where(AgentIdentity.agent_id == agent_id)
+    )
+    identity = result.scalar_one_or_none()
+    if not identity:
+        raise HTTPException(404, "Agent not found in directory")
+
+    return AgentIdentityOut(
+        agent_id=identity.agent_id,
+        display_name=identity.display_name,
+        description=identity.description,
+        homepage_url=identity.homepage_url,
+        logo_url=identity.logo_url,
+        category=identity.category,
+        verified=identity.verified,
+        trust_score=identity.trust_score,
+        total_transactions=identity.total_transactions,
+        total_volume_usd=float(identity.total_volume_usd),
+        first_seen=identity.first_seen.isoformat(),
+        last_active=identity.last_active.isoformat(),
+        metadata_json=identity.metadata_json,
+    ).model_dump()
+
+
+# ═══════════════════════════════════════
+# DASHBOARD API — SCHEMAS
+# ═══════════════════════════════════════
+
+class DashboardAgentSummary(BaseModel):
+    id: str
+    name: str
+    balance_usd: float
+    tx_count: int
+    last_active: str | None = None
+
+
+class DashboardResponse(BaseModel):
+    agent_count: int
+    total_balance_usd: float
+    total_transactions: int
+    total_volume_usd: float
+    recent_transactions: list[dict]
+    agents: list[dict]
+    platform_stats: dict | None = None
+
+
+class DailyVolume(BaseModel):
+    date: str
+    count: int
+    volume: float
+
+
+class SpendingCategory(BaseModel):
+    description: str
+    count: int
+    total: float
+
+
+class AgentAnalyticsResponse(BaseModel):
+    daily_volume: list[dict]
+    spending_by_category: list[dict]
+    hourly_heatmap: list[int]
+    balance_history: list[dict]
+
+
+# ═══════════════════════════════════════
+# DASHBOARD API — ENDPOINTS
+# ═══════════════════════════════════════
+
+@app.get("/v1/miniapp/dashboard")
+async def miniapp_dashboard(
+    user: dict = Depends(get_miniapp_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Main dashboard data — overview of all agents, balances, and activity."""
+    telegram_id = user.get("telegram_id")
+
+    result = await db.execute(
+        select(User).where(User.telegram_id == telegram_id)
+    )
+    db_user = result.scalar_one_or_none()
+    if not db_user:
+        return DashboardResponse(
+            agent_count=0, total_balance_usd=0, total_transactions=0,
+            total_volume_usd=0, recent_transactions=[], agents=[],
+        ).model_dump()
+
+    # Get all agents
+    result = await db.execute(
+        select(Agent).where(Agent.user_id == db_user.id)
+    )
+    agents_list = result.scalars().all()
+    agent_ids = [a.id for a in agents_list]
+
+    if not agent_ids:
+        return DashboardResponse(
+            agent_count=0, total_balance_usd=0, total_transactions=0,
+            total_volume_usd=0, recent_transactions=[], agents=[],
+        ).model_dump()
+
+    # Total balance
+    total_balance = sum(float(a.balance_usd) for a in agents_list)
+
+    # Total transactions & volume
+    tx_stats = await db.execute(
+        select(
+            func.count(Transaction.id),
+            func.coalesce(func.sum(Transaction.amount_usd), 0),
+        ).where(Transaction.agent_id.in_(agent_ids))
+    )
+    tx_row = tx_stats.one()
+    total_tx = tx_row[0]
+    total_volume = float(tx_row[1])
+
+    # Recent 5 transactions
+    recent_result = await db.execute(
+        select(Transaction)
+        .where(Transaction.agent_id.in_(agent_ids))
+        .order_by(Transaction.created_at.desc())
+        .limit(5)
+    )
+    recent_txs = recent_result.scalars().all()
+
+    # Map agent_id → name
+    agent_name_map = {a.id: a.name for a in agents_list}
+
+    recent_out = [
+        {
+            "id": tx.id,
+            "agent_id": tx.agent_id,
+            "agent_name": agent_name_map.get(tx.agent_id, "Unknown"),
+            "type": tx.tx_type.value,
+            "amount": float(tx.amount_usd),
+            "fee": float(tx.fee_usd),
+            "description": tx.description,
+            "status": tx.status.value,
+            "created_at": tx.created_at.isoformat(),
+        }
+        for tx in recent_txs
+    ]
+
+    # Per-agent summary
+    agents_out = []
+    for agent in agents_list:
+        agent_tx_result = await db.execute(
+            select(
+                func.count(Transaction.id),
+                func.max(Transaction.created_at),
+            ).where(Transaction.agent_id == agent.id)
+        )
+        agent_tx_row = agent_tx_result.one()
+        agents_out.append({
+            "id": agent.id,
+            "name": agent.name,
+            "balance_usd": float(agent.balance_usd),
+            "tx_count": agent_tx_row[0],
+            "last_active": agent_tx_row[1].isoformat() if agent_tx_row[1] else None,
+            "is_active": agent.is_active,
+        })
+
+    # Platform stats (admin only)
+    platform_stats = None
+    if telegram_id == ADMIN_TELEGRAM_ID:
+        total_users = await db.execute(select(func.count(User.id)))
+        total_agents = await db.execute(select(func.count(Agent.id)))
+        total_rev = await db.execute(select(func.coalesce(func.sum(PlatformRevenue.amount_usd), 0)))
+        platform_stats = {
+            "total_users": total_users.scalar() or 0,
+            "total_agents": total_agents.scalar() or 0,
+            "total_revenue_usd": float(total_rev.scalar() or 0),
+        }
+
+    return DashboardResponse(
+        agent_count=len(agents_list),
+        total_balance_usd=total_balance,
+        total_transactions=total_tx,
+        total_volume_usd=total_volume,
+        recent_transactions=recent_out,
+        agents=agents_out,
+        platform_stats=platform_stats,
+    ).model_dump()
+
+
+@app.get("/v1/miniapp/agents/{agent_id}/analytics")
+async def miniapp_agent_analytics(
+    agent_id: str,
+    user: dict = Depends(get_miniapp_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Agent analytics — daily volume, spending breakdown, hourly heatmap, balance history."""
+    telegram_id = user.get("telegram_id")
+
+    # Verify ownership
+    result = await db.execute(
+        select(Agent).join(User).where(
+            Agent.id == agent_id,
+            User.telegram_id == telegram_id,
+        )
+    )
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise HTTPException(404, "Agent not found")
+
+    now = datetime.utcnow()
+    thirty_days_ago = now - timedelta(days=30)
+
+    # ── Daily transaction volume (last 30 days) ──
+    daily_result = await db.execute(
+        select(
+            cast(Transaction.created_at, Date).label("day"),
+            func.count(Transaction.id),
+            func.coalesce(func.sum(Transaction.amount_usd), 0),
+        )
+        .where(
+            Transaction.agent_id == agent_id,
+            Transaction.created_at >= thirty_days_ago,
+        )
+        .group_by("day")
+        .order_by("day")
+    )
+    daily_rows = daily_result.all()
+
+    # Fill in missing days with zeros
+    daily_map = {str(r[0]): {"date": str(r[0]), "count": r[1], "volume": float(r[2])} for r in daily_rows}
+    daily_volume = []
+    for i in range(30):
+        d = (thirty_days_ago + timedelta(days=i)).strftime("%Y-%m-%d")
+        daily_volume.append(daily_map.get(d, {"date": d, "count": 0, "volume": 0.0}))
+
+    # ── Spending by category/description (top 10) ──
+    category_result = await db.execute(
+        select(
+            func.coalesce(Transaction.description, "Uncategorized").label("desc"),
+            func.count(Transaction.id),
+            func.coalesce(func.sum(Transaction.amount_usd), 0),
+        )
+        .where(
+            Transaction.agent_id == agent_id,
+            Transaction.created_at >= thirty_days_ago,
+        )
+        .group_by("desc")
+        .order_by(func.sum(Transaction.amount_usd).desc())
+        .limit(10)
+    )
+    spending_cats = [
+        {"description": r[0], "count": r[1], "total": float(r[2])}
+        for r in category_result.all()
+    ]
+
+    # ── Hourly activity heatmap (24 slots) ──
+    hourly_result = await db.execute(
+        select(
+            func.extract("hour", Transaction.created_at).label("hour"),
+            func.count(Transaction.id),
+        )
+        .where(
+            Transaction.agent_id == agent_id,
+            Transaction.created_at >= thirty_days_ago,
+        )
+        .group_by("hour")
+    )
+    hourly_map = {int(r[0]): r[1] for r in hourly_result.all()}
+    hourly_heatmap = [hourly_map.get(h, 0) for h in range(24)]
+
+    # ── Balance history (daily snapshots — estimated from cumulative txns) ──
+    # We reconstruct by running a cumulative sum backwards from current balance
+    balance_history = []
+    current_balance = float(agent.balance_usd)
+    # Get daily net changes (deposits - spends)
+    daily_net_result = await db.execute(
+        select(
+            cast(Transaction.created_at, Date).label("day"),
+            func.sum(
+                # deposits add, spends/fees subtract
+                Transaction.amount_usd
+            ),
+            func.array_agg(Transaction.tx_type),
+        )
+        .where(
+            Transaction.agent_id == agent_id,
+            Transaction.created_at >= thirty_days_ago,
+        )
+        .group_by("day")
+        .order_by("day")
+    )
+
+    # Simpler approach: just track balance per day going backwards
+    # Get all txns in the period ordered by date
+    all_txns_result = await db.execute(
+        select(
+            cast(Transaction.created_at, Date).label("day"),
+            Transaction.tx_type,
+            Transaction.amount_usd,
+            Transaction.fee_usd,
+        )
+        .where(
+            Transaction.agent_id == agent_id,
+            Transaction.created_at >= thirty_days_ago,
+        )
+        .order_by(Transaction.created_at.desc())
+    )
+    all_txns = all_txns_result.all()
+
+    # Build daily net-change map
+    from models.schema import TransactionType
+    daily_net = {}
+    for row in all_txns:
+        day_str = str(row[0])
+        net = daily_net.get(day_str, Decimal("0"))
+        if row[1] == TransactionType.DEPOSIT:
+            net -= row[2]  # reverse: removing deposit decreases balance
+        elif row[1] == TransactionType.SPEND:
+            net += row[2] + row[3]  # reverse: removing spend increases balance
+        elif row[1] == TransactionType.REFUND:
+            net -= row[2]  # reverse
+        elif row[1] == TransactionType.FEE:
+            net += row[2]  # reverse
+        daily_net[day_str] = net
+
+    # Walk backwards from today's balance
+    bal = Decimal(str(current_balance))
+    for i in range(30):
+        d = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+        balance_history.append({"date": d, "balance": float(bal)})
+        # Reverse the day's transactions to get previous day's balance
+        if d in daily_net:
+            bal += daily_net[d]
+
+    balance_history.reverse()
+
+    return AgentAnalyticsResponse(
+        daily_volume=daily_volume,
+        spending_by_category=spending_cats,
+        hourly_heatmap=hourly_heatmap,
+        balance_history=balance_history,
+    ).model_dump()
+
+
+@app.get("/v1/miniapp/agents/{agent_id}/identity")
+async def miniapp_agent_identity(
+    agent_id: str,
+    user: dict = Depends(get_miniapp_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get an agent's identity card (for dashboard display)."""
+    telegram_id = user.get("telegram_id")
+
+    # Verify ownership
+    result = await db.execute(
+        select(Agent).join(User).where(
+            Agent.id == agent_id,
+            User.telegram_id == telegram_id,
+        )
+    )
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise HTTPException(404, "Agent not found")
+
+    result = await db.execute(
+        select(AgentIdentity).where(AgentIdentity.agent_id == agent_id)
+    )
+    identity = result.scalar_one_or_none()
+    if not identity:
+        return {"identity": None}
+
+    # Refresh counters
+    await _refresh_identity_counters(db, identity)
+    score = _calculate_trust_score(identity, agent)
+    identity.trust_score = score.total
+    await db.commit()
+
+    return {
+        "identity": AgentIdentityOut(
+            agent_id=identity.agent_id,
+            display_name=identity.display_name,
+            description=identity.description,
+            homepage_url=identity.homepage_url,
+            logo_url=identity.logo_url,
+            category=identity.category,
+            verified=identity.verified,
+            trust_score=identity.trust_score,
+            total_transactions=identity.total_transactions,
+            total_volume_usd=float(identity.total_volume_usd),
+            first_seen=identity.first_seen.isoformat(),
+            last_active=identity.last_active.isoformat(),
+            metadata_json=identity.metadata_json,
+        ).model_dump(),
+        "trust_score_breakdown": score.model_dump(),
     }
 
 

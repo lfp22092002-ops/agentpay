@@ -4,7 +4,7 @@ from alembic import context
 
 # Import our models so Alembic sees them
 from models.database import Base
-from models.schema import User, Agent, Wallet, Transaction  # noqa: F401
+from models.schema import User, Agent, Wallet, Transaction, AgentIdentity, PlatformRevenue  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

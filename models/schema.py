@@ -27,6 +27,30 @@ class PaymentMethod(str, enum.Enum):
     MANUAL = "manual"
 
 
+class AgentIdentity(Base):
+    """Agent identity/reputation — the "Know Your Agent" (KYA) system."""
+    __tablename__ = "agent_identities"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    agent_id: Mapped[str] = mapped_column(String(36), ForeignKey("agents.id"), unique=True, index=True)
+    display_name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    homepage_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    logo_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    category: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    trust_score: Mapped[int] = mapped_column(BigInteger, default=0)
+    total_transactions: Mapped[int] = mapped_column(BigInteger, default=0)
+    total_volume_usd: Mapped[Decimal] = mapped_column(Numeric(12, 4), default=Decimal("0.0000"))
+    first_seen: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_active: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    agent: Mapped["Agent"] = relationship(back_populates="identity")
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -72,6 +96,7 @@ class Agent(Base):
     user: Mapped["User"] = relationship(back_populates="agents")
     wallet: Mapped["Wallet | None"] = relationship(back_populates="agent", uselist=False, cascade="all, delete-orphan")
     transactions: Mapped[list["Transaction"]] = relationship(back_populates="agent", cascade="all, delete-orphan")
+    identity: Mapped["AgentIdentity | None"] = relationship(back_populates="agent", uselist=False, cascade="all, delete-orphan")
 
 
 class Wallet(Base):
