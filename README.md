@@ -19,7 +19,7 @@ AI agents can browse, code, deploy — but **can't spend money** without a human
 | No on-chain wallet for agents | Multi-chain USDC wallets (Base, Polygon, BNB, Solana) |
 | Agents can't hold or transfer funds | Agent-to-agent transfers, refunds, webhooks |
 | Payment UIs don't fit agent workflows | Pure API + Python SDK + MCP tools |
-| Expensive/complex infrastructure | Self-hosted, open-source, 2% tx fee |
+| Expensive/complex infrastructure | Self-hosted, open-source, 0% fees (beta) |
 
 ---
 
@@ -171,7 +171,7 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 | | |
 |---|---|
 | **Setup** | Free |
-| **Transactions** | 2% fee |
+| **Transactions** | 0% fees (beta) |
 | **Monthly** | $0 |
 | **Self-hosted** | Free forever |
 

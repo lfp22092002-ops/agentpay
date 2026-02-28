@@ -27,7 +27,7 @@ API_PORT = int(os.getenv("API_PORT", "8080"))
 STARS_TO_USD_RATE = 0.013
 
 # Platform fee
-PLATFORM_FEE_PERCENT = 2.0  # 2% on transactions
+PLATFORM_FEE_PERCENT = 0.0  # FREE during launch — grow first, monetize later
 
 # Spending limits
 DEFAULT_DAILY_LIMIT_USD = 50.0
