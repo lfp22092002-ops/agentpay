@@ -72,12 +72,20 @@ curl -X POST https://leofundmybot.dev/api/spend \
 - ↩️ Refunds & transaction reversal
 - 🌐 x402 protocol support (HTTP-native payments)
 
+**Agent Identity (KYA — Know Your Agent)**
+- 🪪 Agent identity profiles with trust scores (0-100)
+- 📊 Trust score based on: account age, tx count, volume, profile, verified badge
+- 📂 Public agent directory with category filtering
+- ✅ Verified agent badges
+
 **Security**
 - 🔐 SHA-256 hashed API keys (Stripe-style — shown once, never stored)
 - 🔑 Key rotation endpoint
 - 🛡️ Fernet+PBKDF2 encrypted wallet keys at rest
 - 🚦 Per-key rate limiting (60 req/min)
-- 🔒 CORS lockdown + security headers (HSTS, CSP, X-Frame-Options)
+- 🔒 CORS lockdown + security headers (HSTS, CSP, Referrer-Policy, Permissions-Policy)
+- 🧱 UFW firewall + fail2ban + SSH hardening
+- 🔍 Pen-tested: Nmap, Nikto, SQLmap — zero vulnerabilities
 
 **Developer Experience**
 - 📚 Full OpenAPI docs at `/docs` and `/redoc`
@@ -126,12 +134,14 @@ Requires: Python 3.11+, PostgreSQL, a Telegram Bot Token.
 
 ---
 
-## API Endpoints (29)
+## API Endpoints (35+)
 
 | Category | Endpoints |
 |----------|-----------|
 | Agent | Create, get, list, update, delete, rotate API key |
 | Balance | Get balance, deposit, spend, transfer, refund |
+| Identity | Create/update profile, get trust score, public directory |
+| Dashboard | Aggregate stats, agent analytics, spending breakdown |
 | Webhooks | Create, list, delete, test |
 | Wallets | Get addresses (Base, Polygon, BNB, Solana) |
 | Chains | List supported chains, chain status |
@@ -179,13 +189,19 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 
 ## Roadmap
 
+- [x] Multi-chain USDC wallets (Base, Polygon, BNB, Solana)
+- [x] Agent Identity System (KYA — Know Your Agent) with trust scores
+- [x] Security audit — pen-tested with Nmap, Nikto, SQLmap (0 vulns)
+- [x] Dashboard API for analytics
 - [ ] Python SDK on PyPI (`pip install agentpay`)
+- [ ] TypeScript SDK on npm
 - [ ] LangChain / CrewAI native tool wrappers
 - [ ] Virtual Visa cards via Lithic
 - [ ] Telegram Stars production payments
-- [ ] Agent identity system (KYA — Know Your Agent)
+- [ ] Dashboard UI (web frontend)
 - [ ] Payee whitelists
 - [ ] Google AP2 + Stripe Agentic Commerce compatibility
+- [ ] x402 facilitator mode (settle payments for other agents)
 
 ---
 
