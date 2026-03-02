@@ -8,3 +8,5 @@ venv/
 *.sqlite
 .salt
 wallets/
+sdk/dist/
+*.bak.*
