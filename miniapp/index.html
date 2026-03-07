@@ -2,49 +2,95 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AgentPay</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Loading overlay -->
     <div id="loading" class="loading-overlay">
-        <div class="spinner"></div>
-        <p>Authenticating…</p>
+        <div class="loading-content">
+            <div class="loading-logo">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <rect width="48" height="48" rx="12" fill="url(#lg)"/>
+                    <path d="M14 33V15l10 18V15" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M28 15h5a3.5 3.5 0 010 7H28m0-7v18m0-11h4" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <defs><linearGradient id="lg" x1="0" y1="0" x2="48" y2="48"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+                </svg>
+            </div>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Connecting…</p>
+        </div>
     </div>
 
     <!-- App shell -->
     <div id="app" class="app hidden">
         <!-- Header -->
         <header class="header">
-            <h1 class="logo">AgentPay</h1>
+            <div class="header-left">
+                <h1 class="logo">AgentPay</h1>
+            </div>
             <div class="header-right">
                 <span id="user-name" class="user-name"></span>
+                <div id="user-avatar" class="user-avatar"></div>
             </div>
         </header>
+
+        <!-- Balance Overview -->
+        <div id="balance-overview" class="balance-overview">
+            <p class="balance-label">Total Balance</p>
+            <h2 id="total-balance" class="balance-amount">$0.00</h2>
+            <div class="balance-actions">
+                <button class="action-btn action-primary" onclick="openFundFlow()">
+                    <span class="action-icon">+</span>
+                    <span>Fund Agent</span>
+                </button>
+                <button class="action-btn" onclick="switchTab('transactions')">
+                    <span class="action-icon">↗</span>
+                    <span>History</span>
+                </button>
+                <button class="action-btn" onclick="switchTab('settings')">
+                    <span class="action-icon">⚙</span>
+                    <span>Settings</span>
+                </button>
+            </div>
+        </div>
 
         <!-- Tab Navigation -->
         <nav class="tab-bar">
             <button class="tab active" data-tab="dashboard">
-                <span class="tab-icon">📊</span>
+                <span class="tab-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                </span>
                 <span class="tab-label">Agents</span>
             </button>
             <button class="tab" data-tab="transactions">
-                <span class="tab-icon">📜</span>
-                <span class="tab-label">History</span>
-            </button>
-            <button class="tab" data-tab="settings">
-                <span class="tab-icon">⚙️</span>
-                <span class="tab-label">Settings</span>
+                <span class="tab-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </span>
+                <span class="tab-label">Activity</span>
             </button>
             <button class="tab" data-tab="card">
-                <span class="tab-icon">💳</span>
+                <span class="tab-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                </span>
                 <span class="tab-label">Card</span>
             </button>
             <button class="tab" data-tab="wallet">
-                <span class="tab-icon">🔗</span>
+                <span class="tab-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                </span>
                 <span class="tab-label">Wallet</span>
+            </button>
+            <button class="tab" data-tab="settings">
+                <span class="tab-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                </span>
+                <span class="tab-label">Settings</span>
             </button>
         </nav>
 
@@ -54,29 +100,44 @@
             <section id="tab-dashboard" class="tab-content active">
                 <div class="section-header">
                     <h2>Your Agents</h2>
+                    <span id="agent-count" class="section-badge">0</span>
                 </div>
                 <div id="agents-list" class="agents-list">
-                    <div class="empty-state">Loading agents…</div>
+                    <!-- Skeleton loaders -->
+                    <div class="skeleton-card">
+                        <div class="skeleton-line w60"></div>
+                        <div class="skeleton-line w40"></div>
+                        <div class="skeleton-line w80"></div>
+                    </div>
+                    <div class="skeleton-card">
+                        <div class="skeleton-line w40"></div>
+                        <div class="skeleton-line w60"></div>
+                        <div class="skeleton-line w50"></div>
+                    </div>
                 </div>
             </section>
 
             <!-- Transactions Tab -->
             <section id="tab-transactions" class="tab-content">
                 <div class="section-header">
-                    <h2>Transaction History</h2>
+                    <h2>Activity</h2>
                 </div>
                 <div class="filters">
-                    <select id="filter-type" class="filter-select">
-                        <option value="">All Types</option>
-                        <option value="spend">Spend</option>
-                        <option value="deposit">Deposit</option>
-                        <option value="refund">Refund</option>
-                        <option value="fee">Fee</option>
-                    </select>
-                    <input type="date" id="filter-date" class="filter-input" placeholder="Filter by date">
+                    <div class="filter-chips">
+                        <button class="chip active" data-filter="">All</button>
+                        <button class="chip" data-filter="spend">Spent</button>
+                        <button class="chip" data-filter="deposit">Funded</button>
+                        <button class="chip" data-filter="refund">Refunds</button>
+                    </div>
                 </div>
                 <div id="transactions-list" class="transactions-list">
-                    <div class="empty-state">Select an agent to view transactions</div>
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        </div>
+                        <p class="empty-title">No activity yet</p>
+                        <p class="empty-desc">Transactions will appear here once your agent starts spending</p>
+                    </div>
                 </div>
             </section>
 
@@ -86,7 +147,13 @@
                     <h2>Agent Settings</h2>
                 </div>
                 <div id="settings-panel" class="settings-panel">
-                    <div class="empty-state">Select an agent from the dashboard</div>
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        </div>
+                        <p class="empty-title">Select an agent</p>
+                        <p class="empty-desc">Tap an agent on the dashboard to manage its settings</p>
+                    </div>
                 </div>
             </section>
 
@@ -96,7 +163,13 @@
                     <h2>Virtual Card</h2>
                 </div>
                 <div id="card-panel" class="card-panel">
-                    <div class="empty-state">Select an agent to view card</div>
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        </div>
+                        <p class="empty-title">No card yet</p>
+                        <p class="empty-desc">Select an agent to view or create a virtual card</p>
+                    </div>
                 </div>
             </section>
 
@@ -106,11 +179,31 @@
                     <h2>On-Chain Wallet</h2>
                 </div>
                 <div id="wallet-panel" class="wallet-panel">
-                    <div class="empty-state">Select an agent to view wallet</div>
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                        </div>
+                        <p class="empty-title">No wallet yet</p>
+                        <p class="empty-desc">Select an agent to view or create an on-chain wallet</p>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
+
+    <!-- Fund Modal -->
+    <div id="fund-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="closeFundModal()"></div>
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <h3 class="modal-title">Fund Agent</h3>
+            <div id="fund-agent-select" class="fund-agent-select"></div>
+            <div id="fund-amount-select" class="fund-amount-select hidden"></div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="app.js"></script>
 </body>

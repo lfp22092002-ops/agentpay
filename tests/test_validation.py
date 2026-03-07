@@ -157,10 +157,10 @@ class _MockIdentity:
 class TestTrustScore:
     def test_trust_score_empty_profile(self):
         from api.main import _calculate_trust_score
-        from datetime import datetime
+        from datetime import datetime, timezone
         from decimal import Decimal
 
-        agent = _MockAgent(created_at=datetime.utcnow())
+        agent = _MockAgent(created_at=datetime.now(timezone.utc))
         identity = _MockIdentity(
             display_name="",
             description=None,
@@ -177,10 +177,10 @@ class TestTrustScore:
 
     def test_trust_score_verified_agent(self):
         from api.main import _calculate_trust_score
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
         from decimal import Decimal
 
-        agent = _MockAgent(created_at=datetime.utcnow() - timedelta(weeks=20))
+        agent = _MockAgent(created_at=datetime.now(timezone.utc) - timedelta(weeks=20))
         identity = _MockIdentity(
             display_name="TradingBot",
             description="A verified trading bot",
@@ -201,10 +201,10 @@ class TestTrustScore:
 
     def test_trust_score_max_is_100(self):
         from api.main import _calculate_trust_score
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
         from decimal import Decimal
 
-        agent = _MockAgent(created_at=datetime.utcnow() - timedelta(weeks=100))
+        agent = _MockAgent(created_at=datetime.now(timezone.utc) - timedelta(weeks=100))
         identity = _MockIdentity(
             display_name="MaxBot",
             description="Maximum trust",

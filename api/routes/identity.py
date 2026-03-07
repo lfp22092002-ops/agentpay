@@ -1,7 +1,7 @@
 """
 Agent Identity (KYA) endpoints — CRUD and public directory.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/v1", tags=["identity"])
 
 def _calculate_trust_score(identity, agent) -> TrustScoreBreakdown:
     """Calculate trust score (0-100) based on activity and profile."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     age_weeks = (now - agent.created_at).days / 7
     account_age_pts = min(int(age_weeks), 15)
@@ -85,7 +85,7 @@ async def _refresh_identity_counters(db: AsyncSession, identity: AgentIdentity):
     row = result.one()
     identity.total_transactions = row[0]
     identity.total_volume_usd = row[1]
-    identity.last_active = datetime.utcnow()
+    identity.last_active = datetime.now(timezone.utc)
 
 
 # ═══════════════════════════════════════
@@ -138,7 +138,7 @@ async def upsert_identity(req: AgentIdentityUpdate, request: Request, auth: tupl
     result = await db.execute(select(AgentIdentity).where(AgentIdentity.agent_id == agent.id))
     identity = result.scalar_one_or_none()
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     if identity:
         identity.display_name = req.display_name
         identity.description = req.description

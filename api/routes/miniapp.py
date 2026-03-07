@@ -6,7 +6,7 @@ import hmac
 import json
 import time
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from urllib.parse import parse_qs
 
@@ -576,7 +576,7 @@ async def miniapp_agent_analytics(
     if not agent:
         raise HTTPException(404, "Agent not found")
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     thirty_days_ago = now - timedelta(days=30)
 
     # Daily transaction volume (last 30 days)

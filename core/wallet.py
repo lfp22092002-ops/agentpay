@@ -2,7 +2,7 @@ import hashlib
 import secrets
 import asyncio
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.schema import User, Agent, Wallet, Transaction, TransactionType, TransactionStatus, PaymentMethod, PlatformRevenue
@@ -111,7 +111,7 @@ async def deposit(db: AsyncSession, agent: Agent, amount_usd: Decimal, method: P
 
 
 async def get_daily_spent(db: AsyncSession, agent: Agent) -> Decimal:
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     result = await db.execute(
         select(func.coalesce(func.sum(Transaction.amount_usd), 0))
         .where(

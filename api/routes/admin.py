@@ -1,7 +1,7 @@
 """
 Admin endpoints — revenue tracking, withdrawals.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -44,7 +44,7 @@ async def get_revenue(request: Request, db: AsyncSession = Depends(get_db)):
     total = await db.execute(select(func.sum(PlatformRevenue.amount_usd)))
     total_usd = total.scalar() or Decimal("0")
 
-    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     today_result = await db.execute(
         select(func.sum(PlatformRevenue.amount_usd)).where(PlatformRevenue.created_at >= today)
     )

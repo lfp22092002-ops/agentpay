@@ -1,10 +1,14 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from sqlalchemy import String, BigInteger, Numeric, DateTime, Boolean, ForeignKey, Text, Enum as SQLEnum, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.database import Base
 import enum
+
+
+def _utcnow():
+    return datetime.now(timezone.utc)
 
 
 class TransactionType(str, enum.Enum):
@@ -42,11 +46,11 @@ class AgentIdentity(Base):
     trust_score: Mapped[int] = mapped_column(BigInteger, default=0)
     total_transactions: Mapped[int] = mapped_column(BigInteger, default=0)
     total_volume_usd: Mapped[Decimal] = mapped_column(Numeric(12, 4), default=Decimal("0.0000"))
-    first_seen: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    last_active: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    first_seen: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    last_active: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
     agent: Mapped["Agent"] = relationship(back_populates="identity")
 
@@ -59,8 +63,8 @@ class User(Base):
     username: Mapped[str | None] = mapped_column(String(255), nullable=True)
     first_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_pro: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
     agents: Mapped[list["Agent"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
@@ -73,7 +77,7 @@ class PlatformRevenue(Base):
     transaction_id: Mapped[str] = mapped_column(String(36), ForeignKey("transactions.id"), index=True)
     agent_id: Mapped[str] = mapped_column(String(36), ForeignKey("agents.id"), index=True)
     amount_usd: Mapped[Decimal] = mapped_column(Numeric(12, 4))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 
 class Agent(Base):
@@ -91,7 +95,7 @@ class Agent(Base):
     auto_approve_usd: Mapped[Decimal] = mapped_column(Numeric(12, 4), default=Decimal("10.0000"))
     webhook_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     webhook_secret: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     user: Mapped["User"] = relationship(back_populates="agents")
     wallet: Mapped["Wallet | None"] = relationship(back_populates="agent", uselist=False, cascade="all, delete-orphan")
@@ -109,7 +113,7 @@ class Wallet(Base):
     external_id: Mapped[str | None] = mapped_column(String(255), nullable=True)  # Coinbase/Lithic ID
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)  # crypto address
     card_last4: Mapped[str | None] = mapped_column(String(4), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     agent: Mapped["Agent"] = relationship(back_populates="wallet")
 
@@ -130,6 +134,6 @@ class Transaction(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     external_ref: Mapped[str | None] = mapped_column(String(255), nullable=True)  # Stripe/Stars charge ID
     idempotency_key: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     agent: Mapped["Agent"] = relationship(back_populates="transactions")

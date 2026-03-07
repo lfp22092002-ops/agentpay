@@ -10,7 +10,7 @@ import hmac
 import json
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,7 +41,7 @@ def build_event(event_type: str, agent_id: str, data: dict) -> dict:
         "id": f"evt_{hashlib.md5(f'{agent_id}{time.time()}'.encode()).hexdigest()[:16]}",
         "type": event_type,
         "agent_id": agent_id,
-        "created_at": datetime.utcnow().isoformat() + "Z",
+        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         "data": data,
     }
 

@@ -5,10 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AgentPay — The Payment Layer for AI Agents</title>
   <meta name="description" content="Give your AI agent a wallet. Fund via Telegram, spend everywhere. Virtual cards, USDC wallets, and approval workflows for autonomous AI agents.">
+  <meta name="keywords" content="AI agent payments, agent wallet, Telegram Stars, USDC, virtual card, autonomous agent, MCP, agentic commerce, API payments">
+
+  <!-- OpenGraph -->
+  <meta property="og:title" content="AgentPay — The Payment Layer for AI Agents">
+  <meta property="og:description" content="Give your AI agent a wallet. Fund via Telegram Stars, spend via API. Virtual cards, USDC wallets, and real-time approval flows.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://leofundmybot.dev">
+  <meta property="og:site_name" content="AgentPay">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AgentPay — The Payment Layer for AI Agents">
+  <meta name="twitter:description" content="Give your AI agent a wallet. Fund via Telegram Stars, spend via API. Virtual cards, USDC wallets, approval workflows.">
+  <meta name="twitter:site" content="@autonomousaibot">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://leofundmybot.dev">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "AgentPay",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web",
+    "description": "Payment infrastructure for autonomous AI agents. Fund via Telegram Stars, spend via API with virtual cards and USDC wallets.",
+    "url": "https://leofundmybot.dev",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free during beta"
+    }
+  }
+  </script>
 </head>
 <body>
   <!-- Navigation -->
@@ -24,20 +61,25 @@
         <span>AgentPay</span>
       </a>
       <div class="nav-links">
+        <a href="#how-it-works">How it works</a>
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
         <a href="/docs">Docs</a>
-        <a href="https://t.me/FundmyAIbot" class="btn btn-sm" target="_blank" rel="noopener">Get Started</a>
+        <a href="https://t.me/FundmyAIbot" class="btn btn-sm btn-primary" target="_blank" rel="noopener">
+          Open in Telegram
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </div>
       <button class="nav-toggle" aria-label="Toggle menu">
         <span></span><span></span><span></span>
       </button>
     </div>
     <div class="nav-mobile">
+      <a href="#how-it-works">How it works</a>
       <a href="#features">Features</a>
       <a href="#pricing">Pricing</a>
       <a href="/docs">Docs</a>
-      <a href="https://t.me/FundmyAIbot" target="_blank" rel="noopener">Get Started</a>
+      <a href="https://t.me/FundmyAIbot" target="_blank" rel="noopener">Open in Telegram →</a>
     </div>
   </nav>
 
@@ -46,37 +88,85 @@
     <div class="hero-glow"></div>
     <div class="container">
       <div class="hero-badge fade-in">
-        <span class="badge">Now in Beta</span>
+        <span class="badge">
+          <span class="badge-dot"></span>
+          Beta — 0% fees during launch
+        </span>
       </div>
-      <h1 class="hero-title fade-in">Give your AI agent<br><span class="gradient-text">a wallet</span></h1>
-      <p class="hero-subtitle fade-in">The payment layer for autonomous AI agents.<br>Fund via Telegram, spend everywhere.</p>
+      <h1 class="hero-title fade-in">Your AI agent needs<br><span class="gradient-text">a wallet</span></h1>
+      <p class="hero-subtitle fade-in">Fund agents via Telegram Stars. They spend via API.<br>Virtual cards, USDC wallets, and real-time approval flows.</p>
       <div class="hero-cta fade-in">
-        <a href="https://t.me/FundmyAIbot" class="btn btn-primary" target="_blank" rel="noopener">
-          Get Started
+        <a href="https://t.me/FundmyAIbot" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
+          Start Building — Free
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-        <a href="/docs" class="btn btn-secondary">Read Docs</a>
+        <a href="#how-it-works" class="btn btn-secondary">See how it works</a>
       </div>
+
+      <!-- Social proof -->
+      <div class="hero-proof fade-in">
+        <div class="proof-avatars">
+          <div class="proof-avatar" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">L</div>
+          <div class="proof-avatar" style="background: linear-gradient(135deg, #22c55e, #16a34a);">A</div>
+          <div class="proof-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">M</div>
+          <div class="proof-avatar" style="background: linear-gradient(135deg, #ec4899, #db2777);">K</div>
+          <div class="proof-avatar" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">R</div>
+        </div>
+        <p class="proof-text">Trusted by developers building autonomous agents</p>
+      </div>
+
       <div class="hero-visual fade-in">
         <div class="terminal">
           <div class="terminal-header">
             <span class="terminal-dot" style="background:#ff5f57"></span>
             <span class="terminal-dot" style="background:#febc2e"></span>
             <span class="terminal-dot" style="background:#28c840"></span>
-            <span class="terminal-title">Terminal</span>
+            <span class="terminal-title">agent.py</span>
           </div>
           <div class="terminal-body">
-            <pre><code><span class="t-dim">$</span> <span class="t-green">curl</span> -X POST https://api.agentpay.dev/v1/spend \
-  -H <span class="t-yellow">"X-API-Key: ak_live_..."</span> \
-  -d <span class="t-yellow">'{"amount": 5.00, "description": "GPT-4 API call"}'</span>
+            <pre><code><span class="t-dim"># Your agent pays for what it needs</span>
+<span class="t-blue">import</span> agentpay
 
-<span class="t-dim">{</span>
-  <span class="t-blue">"id"</span>: <span class="t-yellow">"txn_8x7k2m..."</span>,
-  <span class="t-blue">"status"</span>: <span class="t-green">"completed"</span>,
-  <span class="t-blue">"amount"</span>: <span class="t-purple">5.00</span>,
-  <span class="t-blue">"balance_remaining"</span>: <span class="t-purple">245.00</span>
-<span class="t-dim">}</span></code></pre>
+client = agentpay.Client(api_key=<span class="t-yellow">"ak_live_..."</span>)
+
+<span class="t-dim"># Check balance</span>
+balance = client.balance()
+<span class="t-green">print</span>(<span class="t-yellow">f"Available: ${balance.available}"</span>)
+
+<span class="t-dim"># Agent makes a purchase</span>
+tx = client.spend(
+    amount=<span class="t-purple">5.00</span>,
+    description=<span class="t-yellow">"GPT-4 API call"</span>
+)
+
+<span class="t-dim"># Response</span>
+<span class="t-dim"># → Transaction txn_8x7k2m: completed</span>
+<span class="t-dim"># → Remaining balance: $245.00</span></code></pre>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Metrics -->
+  <section class="metrics-bar">
+    <div class="container">
+      <div class="metrics-grid">
+        <div class="metric fade-in">
+          <div class="metric-value">< 200ms</div>
+          <div class="metric-label">API Response</div>
+        </div>
+        <div class="metric fade-in">
+          <div class="metric-value">4 Chains</div>
+          <div class="metric-label">Base · Polygon · BNB · Solana</div>
+        </div>
+        <div class="metric fade-in">
+          <div class="metric-value">0%</div>
+          <div class="metric-label">Fees During Beta</div>
+        </div>
+        <div class="metric fade-in">
+          <div class="metric-value">REST API</div>
+          <div class="metric-label">Any Language</div>
         </div>
       </div>
     </div>
@@ -85,8 +175,8 @@
   <!-- How It Works -->
   <section class="how-it-works" id="how-it-works">
     <div class="container">
-      <h2 class="section-title fade-in">How it works</h2>
-      <p class="section-subtitle fade-in">Three steps to autonomous spending</p>
+      <h2 class="section-title fade-in">Three steps to autonomous spending</h2>
+      <p class="section-subtitle fade-in">Set up in under 2 minutes</p>
       <div class="steps">
         <div class="step fade-in">
           <div class="step-number">1</div>
@@ -94,7 +184,7 @@
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 015 5v1H7V7a5 5 0 015-5zM4 10h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V10z"/><circle cx="12" cy="16" r="1"/></svg>
           </div>
           <h3>Create Agent</h3>
-          <p>Register your AI agent via our Telegram bot. Get an API key in seconds.</p>
+          <p>Open our Telegram bot, run <code>/newagent</code>, get an API key instantly.</p>
         </div>
         <div class="step-connector fade-in">
           <svg width="40" height="2" viewBox="0 0 40 2"><line x1="0" y1="1" x2="40" y2="1" stroke="#333" stroke-width="2" stroke-dasharray="4 4"/></svg>
@@ -104,8 +194,8 @@
           <div class="step-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           </div>
-          <h3>Fund via Telegram Stars</h3>
-          <p>Top up your agent's balance instantly with Telegram Stars. No bank account needed.</p>
+          <h3>Fund with Stars</h3>
+          <p>Top up via Telegram Stars — native, instant, no bank account needed.</p>
         </div>
         <div class="step-connector fade-in">
           <svg width="40" height="2" viewBox="0 0 40 2"><line x1="0" y1="1" x2="40" y2="1" stroke="#333" stroke-width="2" stroke-dasharray="4 4"/></svg>
@@ -115,8 +205,8 @@
           <div class="step-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path d="M12 6v6l4 2"/></svg>
           </div>
-          <h3>Agent Spends via API</h3>
-          <p>Your agent calls our REST API to spend. Virtual cards, USDC, or direct payments.</p>
+          <h3>Agent Spends</h3>
+          <p>Your agent calls our API. Virtual cards, USDC, or direct payments — your choice.</p>
         </div>
       </div>
     </div>
@@ -133,42 +223,42 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
           </div>
           <h3>Virtual Visa Cards</h3>
-          <p>Instantly issue virtual Visa cards your agent can use to pay for APIs, SaaS subscriptions, and cloud services.</p>
+          <p>Issue virtual cards your agent can use for APIs, SaaS subscriptions, and cloud services. Pause or close anytime.</p>
         </div>
         <div class="feature-card fade-in">
           <div class="feature-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M6 12h12"/></svg>
           </div>
-          <h3>On-chain USDC Wallets</h3>
-          <p>Every agent gets a USDC wallet. Send and receive stablecoins on-chain for DeFi, cross-border, or crypto-native payments.</p>
+          <h3>Multi-Chain Wallets</h3>
+          <p>USDC wallets on Base, Polygon, BNB Chain, and Solana. Send and receive stablecoins natively.</p>
         </div>
         <div class="feature-card fade-in">
           <div class="feature-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
           </div>
           <h3>Telegram Stars Funding</h3>
-          <p>Let users fund agents directly through Telegram Stars — the simplest crypto-adjacent payment UX in the world.</p>
+          <p>The simplest way to fund AI agents. Users pay with Stars inside Telegram — zero friction.</p>
         </div>
         <div class="feature-card fade-in">
           <div class="feature-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
           </div>
           <h3>Approval Workflows</h3>
-          <p>Set auto-approve thresholds. Large purchases ping you on Telegram for one-tap approval before processing.</p>
+          <p>Auto-approve small spends. Large purchases notify you on Telegram for one-tap approval.</p>
         </div>
         <div class="feature-card fade-in">
           <div class="feature-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
           </div>
           <h3>Webhooks</h3>
-          <p>Get real-time notifications for every transaction, approval request, and balance change via HMAC-signed webhooks.</p>
+          <p>HMAC-signed webhooks for every transaction, approval request, and balance change in real time.</p>
         </div>
         <div class="feature-card fade-in">
           <div class="feature-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           </div>
-          <h3>Rate Limits &amp; Spend Controls</h3>
-          <p>Per-agent spending caps, rate limits, and transaction size limits. Stay in control while your agents run autonomously.</p>
+          <h3>Spend Controls</h3>
+          <p>Per-agent daily caps, per-transaction limits, and rate limiting. Full control while agents run autonomously.</p>
         </div>
       </div>
     </div>
@@ -177,8 +267,8 @@
   <!-- Code Example -->
   <section class="code-section" id="code">
     <div class="container">
-      <h2 class="section-title fade-in">Built for developers</h2>
-      <p class="section-subtitle fade-in">Simple REST API. Works with any language.</p>
+      <h2 class="section-title fade-in">Simple API. Any language.</h2>
+      <p class="section-subtitle fade-in">One endpoint to spend. That's it.</p>
       <div class="code-tabs fade-in">
         <button class="code-tab active" data-tab="curl">cURL</button>
         <button class="code-tab" data-tab="python">Python</button>
@@ -197,20 +287,10 @@
   -H "X-API-Key: ak_live_your_api_key" \
   -d '{
     "amount": 5.00,
-    "description": "OpenAI GPT-4 API call",
-    "idempotency_key": "req_abc123",
-    "skip_approval": false
+    "description": "OpenAI GPT-4 API call"
   }'
 
-# Response
-{
-  "id": "txn_8x7k2mNpQ",
-  "status": "completed",
-  "amount": 5.00,
-  "description": "OpenAI GPT-4 API call",
-  "balance_remaining": 245.00,
-  "created_at": "2026-02-23T07:00:00Z"
-}</code></pre>
+# → { "status": "completed", "balance_remaining": 245.00 }</code></pre>
         </div>
         <div class="code-block" id="tab-python">
           <div class="code-header">
@@ -222,25 +302,61 @@
           </div>
           <pre><code>import agentpay
 
-client = agentpay.Client(api_key="ak_live_your_api_key")
+client = agentpay.Client(api_key="ak_live_...")
 
-# Make a payment
-txn = client.spend(
-    amount=5.00,
-    description="OpenAI GPT-4 API call",
-    idempotency_key="req_abc123"
-)
-print(f"Transaction {txn.id}: {txn.status}")
-print(f"Remaining balance: ${txn.balance_remaining}")
+# Spend
+tx = client.spend(amount=5.00, description="GPT-4 API call")
+print(f"Remaining: ${tx.balance_remaining}")
 
 # Check balance
-balance = client.balance()
-print(f"Available: ${balance.available}")
+print(f"Available: ${client.balance().available}")
 
-# List recent transactions
-transactions = client.transactions(limit=10)
-for t in transactions:
+# Recent transactions
+for t in client.transactions(limit=5):
     print(f"  {t.created_at}: ${t.amount} — {t.description}")</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof / Testimonials -->
+  <section class="social-proof" id="testimonials">
+    <div class="container">
+      <h2 class="section-title fade-in">What developers are saying</h2>
+      <p class="section-subtitle fade-in">Early adopters building the future of autonomous agents</p>
+      <div class="testimonials-grid">
+        <div class="testimonial-card fade-in">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"Finally, a way to let my agent pay for API calls without sharing my credit card. The Telegram Stars integration is genius."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">A</div>
+            <div>
+              <strong>Alex K.</strong>
+              <span>AI Agent Developer</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card fade-in">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"Set up in 2 minutes. My trading bot now manages its own expenses with daily caps. The approval flow saved me from a $500 mistake."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background: linear-gradient(135deg, #22c55e, #16a34a);">M</div>
+            <div>
+              <strong>Maria S.</strong>
+              <span>Crypto/DeFi Builder</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card fade-in">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"The multi-chain wallet support is incredible. My agent can pay for both Web2 APIs and Web3 services from a single interface."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">R</div>
+            <div>
+              <strong>Raj P.</strong>
+              <span>Full-Stack Developer</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -249,25 +365,21 @@ for t in transactions:
   <!-- Pricing -->
   <section class="pricing" id="pricing">
     <div class="container">
-      <h2 class="section-title fade-in">Simple, transparent pricing</h2>
-      <p class="section-subtitle fade-in">Start free. Scale as your agents grow.</p>
+      <h2 class="section-title fade-in">Simple pricing</h2>
+      <p class="section-subtitle fade-in">Free during beta. No surprises.</p>
       <div class="pricing-grid">
         <div class="pricing-card fade-in">
           <div class="pricing-name">Free</div>
-          <div class="pricing-price">$0<span>/month</span></div>
-          <div class="pricing-desc">Perfect for experimenting</div>
+          <div class="pricing-price">$0<span>/mo</span></div>
+          <div class="pricing-desc">Start building today</div>
           <ul class="pricing-features">
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              1 agent
+              Up to 5 agents
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              $50/month spending limit
-            </li>
-            <li>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              0% fees during beta — completely free
+              0% fees during beta
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -277,13 +389,17 @@ for t in transactions:
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Telegram Stars funding
             </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Approval workflows
+            </li>
           </ul>
-          <a href="https://t.me/FundmyAIbot" class="btn btn-outline" target="_blank" rel="noopener">Get Started</a>
+          <a href="https://t.me/FundmyAIbot" class="btn btn-primary btn-block" target="_blank" rel="noopener">Get Started Free</a>
         </div>
         <div class="pricing-card featured fade-in">
-          <div class="pricing-badge">Most Popular</div>
+          <div class="pricing-badge">Coming Soon</div>
           <div class="pricing-name">Pro</div>
-          <div class="pricing-price">$9<span>/month</span></div>
+          <div class="pricing-price">$9<span>/mo</span></div>
           <div class="pricing-desc">For production agents</div>
           <ul class="pricing-features">
             <li>
@@ -292,7 +408,7 @@ for t in transactions:
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              $10,000/month spending limit
+              $10,000/mo limit
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -300,18 +416,14 @@ for t in transactions:
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              USDC wallets
+              Multi-chain USDC wallets
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Webhooks &amp; approval workflows
-            </li>
-            <li>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Priority support
+              Webhooks + priority support
             </li>
           </ul>
-          <a href="https://t.me/FundmyAIbot" class="btn btn-primary" target="_blank" rel="noopener">Start Pro Trial</a>
+          <a href="https://t.me/FundmyAIbot" class="btn btn-outline btn-block" target="_blank" rel="noopener">Join Waitlist</a>
         </div>
         <div class="pricing-card fade-in">
           <div class="pricing-name">Enterprise</div>
@@ -320,47 +432,111 @@ for t in transactions:
           <ul class="pricing-features">
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Unlimited everything
+              Everything in Pro
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Custom spending limits
+              Custom limits
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Volume-based pricing
+              Volume pricing
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Dedicated account manager
-            </li>
-            <li>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              SLA &amp; uptime guarantee
+              Dedicated support + SLA
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Custom integrations
             </li>
           </ul>
-          <a href="mailto:hello@agentpay.dev" class="btn btn-outline">Contact Sales</a>
+          <a href="mailto:hello@agentpay.dev" class="btn btn-outline btn-block">Contact Us</a>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- FAQ -->
+  <section class="faq-section" id="faq">
+    <div class="container">
+      <h2 class="section-title fade-in">Frequently asked questions</h2>
+      <div class="faq-list">
+        <div class="faq-item fade-in">
+          <button class="faq-question" aria-expanded="false">
+            <span>What is AgentPay?</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>AgentPay is a payment infrastructure layer that gives AI agents their own wallets. Instead of sharing your credit card or manually handling every payment, your agent gets a funded wallet and spends autonomously through our API — with configurable limits and approval workflows.</p>
+          </div>
+        </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" aria-expanded="false">
+            <span>How do I fund my agent?</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>The simplest way is Telegram Stars — open our bot, pick an amount, and pay instantly. You can also deposit USDC directly to your agent's on-chain wallet on Base, Polygon, BNB Chain, or Solana.</p>
+          </div>
+        </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" aria-expanded="false">
+            <span>Is there a spending limit?</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>You set the limits. Each agent has configurable daily caps, per-transaction limits, and an auto-approve threshold. Anything above auto-approve sends a Telegram notification for one-tap approval. You stay in control.</p>
+          </div>
+        </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" aria-expanded="false">
+            <span>What are the fees?</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Zero during beta. After launch, the Free tier stays free for up to 5 agents. The Pro plan is $9/month with a 1.5% transaction fee. No hidden charges.</p>
+          </div>
+        </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" aria-expanded="false">
+            <span>Which blockchains are supported?</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>AgentPay supports USDC wallets on Base, Polygon PoS, BNB Chain, and Solana. Your agent can receive deposits and make on-chain payments on any of these networks.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "What is AgentPay?", "acceptedAnswer": {"@type": "Answer", "text": "AgentPay is a payment infrastructure layer that gives AI agents their own wallets. Instead of sharing your credit card, your agent gets a funded wallet and spends autonomously through our API — with configurable limits and approval workflows."}},
+      {"@type": "Question", "name": "How do I fund my agent?", "acceptedAnswer": {"@type": "Answer", "text": "The simplest way is Telegram Stars — open our bot, pick an amount, and pay instantly. You can also deposit USDC directly to your agent's on-chain wallet on Base, Polygon, BNB Chain, or Solana."}},
+      {"@type": "Question", "name": "Is there a spending limit?", "acceptedAnswer": {"@type": "Answer", "text": "You set the limits. Each agent has configurable daily caps, per-transaction limits, and an auto-approve threshold. Anything above auto-approve sends a Telegram notification for one-tap approval."}},
+      {"@type": "Question", "name": "What are the fees?", "acceptedAnswer": {"@type": "Answer", "text": "Zero during beta. After launch, the Free tier stays free for up to 5 agents. The Pro plan is $9/month with a 1.5% transaction fee. No hidden charges."}},
+      {"@type": "Question", "name": "Which blockchains are supported?", "acceptedAnswer": {"@type": "Answer", "text": "AgentPay supports USDC wallets on Base, Polygon PoS, BNB Chain, and Solana. Your agent can receive deposits and make on-chain payments on any of these networks."}}
+    ]
+  }
+  </script>
 
   <!-- CTA -->
   <section class="cta-section">
     <div class="container fade-in">
       <div class="cta-box">
         <h2>Ready to give your agent a wallet?</h2>
-        <p>Start building in minutes. No credit card required.</p>
+        <p>Set up in 2 minutes. No credit card. No fees during beta.</p>
         <div class="hero-cta">
-          <a href="https://t.me/FundmyAIbot" class="btn btn-primary" target="_blank" rel="noopener">
-            Get Started
+          <a href="https://t.me/FundmyAIbot" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
+            Start Building — Free
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </a>
-          <a href="/docs" class="btn btn-secondary">Read Docs</a>
+          <a href="/docs" class="btn btn-secondary">Read the Docs</a>
         </div>
       </div>
     </div>

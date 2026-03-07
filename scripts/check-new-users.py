@@ -7,7 +7,7 @@ sys.path.insert(0, "/home/leo/.openclaw/workspace/projects/agentpay")
 from models.database import async_session, init_db
 from models.schema import User, Agent
 from sqlalchemy import select, func
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 async def check():
@@ -20,7 +20,7 @@ async def check():
         total_users = total.scalar() or 0
 
         # New users in last hour
-        one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+        one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
         new = await db.execute(
             select(User).where(
                 User.telegram_id != 5360481016,

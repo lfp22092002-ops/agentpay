@@ -99,58 +99,120 @@ async def cmd_start(message: Message):
             message.from_user.username,
             message.from_user.first_name
         )
+        agents = await get_user_agents(db, user)
 
-    await message.answer(
-        "⚡ <b>AgentPay</b> — Give your AI agent a wallet\n\n"
-        "Fund your agents, let them spend autonomously.\n\n"
-        "🔹 /newagent — Create an agent\n"
-        "🔹 /agents — List your agents\n"
-        "🔹 /fund — Add funds (Telegram Stars)\n"
-        "🔹 /balance — Check balances\n"
-        "🔹 /history — Transaction history\n"
-        "🔹 /apikey — View your API key prefixes\n"
-        "🔹 /rotatekey — Rotate an API key\n"
-        "🔹 /limits — View/set spending limits\n"
-        "🔹 /setlimit — Change limits\n"
-        "🔹 /delete — Delete an agent\n"
-        "🔹 /stats — Account stats\n"
-        "🔹 /help — Full command list\n\n"
-        "Ready? Create your first agent with /newagent 👇"
+    has_agents = len(agents) > 0
+
+    if has_agents:
+        total = sum(a.balance_usd for a in agents)
+        active = sum(1 for a in agents if a.is_active)
+        buttons = [
+            [InlineKeyboardButton(text="💰 Fund Agent", callback_data="action:fund"),
+             InlineKeyboardButton(text="📊 Dashboard", callback_data="action:agents")],
+            [InlineKeyboardButton(text="📜 History", callback_data="action:history"),
+             InlineKeyboardButton(text="⚙️ Limits", callback_data="action:limits")],
+        ]
+        await message.answer(
+            f"👋 Welcome back!\n\n"
+            f"🤖 {active} active agent{'s' if active != 1 else ''} · "
+            f"💰 ${total:.2f} total\n\n"
+            f"What would you like to do?",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        )
+    else:
+        await message.answer(
+            "⚡ <b>AgentPay</b>\n\n"
+            "Give your AI agent a wallet. Fund it, "
+            "set spending limits, and let it pay for "
+            "APIs, services, and tools autonomously.\n\n"
+            "🔹 Create an agent\n"
+            "🔹 Fund with Telegram Stars\n"
+            "🔹 Agent spends via API\n"
+            "🔹 You stay in control\n\n"
+            "Ready? 👇",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🤖 Create My First Agent", callback_data="action:newagent_prompt")],
+                [InlineKeyboardButton(text="📖 How It Works", callback_data="action:help")],
+            ]),
+        )
+
+
+@router.callback_query(F.data == "action:newagent_prompt")
+async def callback_newagent_prompt(callback: CallbackQuery):
+    await callback.message.answer(
+        "Give your agent a name:\n\n"
+        "<code>/newagent trading-bot</code>\n\n"
+        "Names can be anything — it's just a label for you."
     )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action:fund")
+async def callback_action_fund(callback: CallbackQuery):
+    # Delegate to the fund command
+    await cmd_fund(callback.message, callback.from_user.id)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action:agents")
+async def callback_action_agents(callback: CallbackQuery):
+    await cmd_agents_for_user(callback.message, callback.from_user.id)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action:history")
+async def callback_action_history(callback: CallbackQuery):
+    await cmd_history_for_user(callback.message, callback.from_user.id)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action:limits")
+async def callback_action_limits(callback: CallbackQuery):
+    await cmd_limits_for_user(callback.message, callback.from_user.id)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "action:help")
+async def callback_action_help(callback: CallbackQuery):
+    await send_help(callback.message)
+    await callback.answer()
 
 
 @router.message(Command("help"))
 async def cmd_help(message: Message):
+    await send_help(message)
+
+
+async def send_help(message: Message):
     await message.answer(
-        "💳 <b>AgentPay — Fund Your AI Agents</b>\n\n"
-        "<b>🚀 Getting Started</b>\n"
-        "/newagent — Create an agent\n"
-        "/fund — Add funds (Telegram Stars)\n"
+        "📖 <b>AgentPay Commands</b>\n\n"
+        "<b>Getting Started</b>\n"
+        "/newagent <code>name</code> — Create agent\n"
+        "/fund — Add funds (Stars)\n"
         "/apikey — View API key prefixes\n"
-        "/rotatekey — Generate new API key\n\n"
-        "<b>💰 Money</b>\n"
+        "/rotatekey — New API key\n\n"
+        "<b>Money</b>\n"
         "/balance — Check balances\n"
-        "/history — Transaction history\n"
-        "/refund — Refund a transaction\n"
-        "/transfer — Move funds between agents\n"
-        "/export — Download transactions as CSV\n\n"
-        "<b>🔗 Integrations</b>\n"
-        "/wallet — On-chain USDC wallet (Base)\n"
+        "/history — Transactions\n"
+        "/refund <code>id</code> — Refund a spend\n"
+        "/transfer <code>from to amount</code>\n"
+        "/export — CSV download\n\n"
+        "<b>Integrations</b>\n"
+        "/wallet — On-chain wallet\n"
         "/card — Virtual Visa card\n\n"
-        "<b>⚙️ Settings</b>\n"
-        "/limits — View spending limits\n"
-        "/setlimit — Change limits\n"
-        "/setapprove — Auto-approve threshold\n"
+        "<b>Controls</b>\n"
+        "/limits — View limits\n"
+        "/setlimit <code>agent daily 100</code>\n"
+        "/setapprove <code>agent 25</code>\n"
         "/approvals — Pending approvals\n\n"
-        "<b>📊 Account</b>\n"
-        "/agents — List your agents\n"
-        "/stats — Usage statistics\n"
-        "/delete — Remove an agent\n\n"
-        "<b>🌐 Links</b>\n"
-        "📊 Dashboard: leofundmybot.dev/app\n"
-        "📖 API Docs: leofundmybot.dev/docs-site\n"
-        "🤖 SDK: pip install agentpay",
-        parse_mode="HTML",
+        "<b>Account</b>\n"
+        "/agents — List agents\n"
+        "/stats — Usage stats\n"
+        "/delete — Remove agent\n"
+        "/demo — See a live demo\n\n"
+        "📊 <a href='https://leofundmybot.dev/app'>Dashboard</a> · "
+        "📖 <a href='https://leofundmybot.dev/docs-site'>API Docs</a>",
+        disable_web_page_preview=True,
     )
 
 
@@ -163,9 +225,8 @@ async def cmd_new_agent(message: Message):
     args = message.text.split(maxsplit=1)
     if len(args) < 2:
         await message.answer(
-            "Usage: <code>/newagent MyBot</code>\n"
-            "Example: <code>/newagent trading-bot</code>\n\n"
-            "💡 Tap the command above to copy it."
+            "Give your agent a name:\n\n"
+            "<code>/newagent trading-bot</code>"
         )
         return
 
@@ -176,40 +237,63 @@ async def cmd_new_agent(message: Message):
         agents = await get_user_agents(db, user)
 
         if len(agents) >= 5 and not user.is_pro:
-            await message.answer("⚠️ Free tier: max 5 agents. Upgrade to Pro for unlimited.")
+            await message.answer(
+                "⚠️ Free tier: max 5 agents.\n"
+                "Delete one or upgrade to Pro."
+            )
             return
 
         agent, full_key = await create_agent(db, user, name)
 
+    buttons = [
+        [InlineKeyboardButton(text="💰 Fund This Agent", callback_data=f"pick:{agent.id}")],
+        [InlineKeyboardButton(text="📊 View All Agents", callback_data="action:agents")],
+    ]
+
     await message.answer(
-        f"✅ Agent <b>{name}</b> created!\n\n"
+        f"✅ <b>{name}</b> created!\n\n"
         f"🔑 API Key:\n<code>{full_key}</code>\n\n"
-        f"⚠️ <b>Save this key now — it will NOT be shown again!</b>\n\n"
-        f"💰 Balance: $0.00\n"
-        f"📊 Daily limit: ${agent.daily_limit_usd}\n"
-        f"📊 Per-tx limit: ${agent.tx_limit_usd}\n\n"
-        f"Fund it with /fund to start spending."
+        f"⚠️ Save this — shown only once.\n\n"
+        f"Daily limit: ${agent.daily_limit_usd} · Per-tx: ${agent.tx_limit_usd}",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
 
 
 @router.message(Command("agents"))
 async def cmd_agents(message: Message):
+    await cmd_agents_for_user(message, message.from_user.id)
+
+
+async def cmd_agents_for_user(message: Message, user_id: int):
     async with async_session() as db:
-        user = await get_or_create_user(db, message.from_user.id)
+        user = await get_or_create_user(db, user_id)
         agents = await get_user_agents(db, user)
 
     if not agents:
-        await message.answer("No agents yet. Create one with <code>/newagent MyBot</code>")
+        await message.answer(
+            "No agents yet.\n\n"
+            "Create one: <code>/newagent MyBot</code>"
+        )
         return
 
-    lines = ["🤖 <b>Your Agents</b>\n"]
+    lines = []
+    total = Decimal("0")
     for a in agents:
         status = "🟢" if a.is_active else "🔴"
         lines.append(f"{status} <b>{a.name}</b> — ${a.balance_usd:.2f}")
+        total += a.balance_usd
 
-    total = sum(a.balance_usd for a in agents)
-    lines.append(f"\n💰 Total: ${total:.2f}")
-    await message.answer("\n".join(lines))
+    buttons = [
+        [InlineKeyboardButton(text="💰 Fund", callback_data="action:fund"),
+         InlineKeyboardButton(text="➕ New Agent", callback_data="action:newagent_prompt")],
+    ]
+
+    await message.answer(
+        "🤖 <b>Your Agents</b>\n\n"
+        + "\n".join(lines)
+        + f"\n\n💰 Total: <b>${total:.2f}</b>",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+    )
 
 
 @router.message(Command("balance"))
@@ -224,39 +308,38 @@ async def cmd_apikey(message: Message):
         agents = await get_user_agents(db, user)
 
     if not agents:
-        await message.answer("No agents. Create one with <code>/newagent MyBot</code>")
+        await message.answer("No agents. Create one: <code>/newagent MyBot</code>")
         return
 
-    lines = ["🔑 <b>API Key Prefixes</b>\n"]
+    lines = []
     for a in agents:
         lines.append(f"<b>{a.name}</b>: <code>{a.api_key_prefix}</code>")
-    lines.append("\n⚠️ Full keys are shown only at creation. Use /rotatekey to get a new one.")
 
-    await message.answer("\n".join(lines))
+    await message.answer(
+        "🔑 <b>API Key Prefixes</b>\n\n"
+        + "\n".join(lines)
+        + "\n\nUse /rotatekey to generate a new key.",
+    )
 
 
 @router.message(Command("rotatekey"))
 async def cmd_rotatekey(message: Message):
-    """Rotate an agent's API key: /rotatekey AgentName"""
     args = message.text.split(maxsplit=1) if message.text else []
     if len(args) < 2:
-        # Show agent selection buttons
         async with async_session() as db:
             user = await get_or_create_user(db, message.from_user.id)
             agents = await get_user_agents(db, user)
         if not agents:
-            await message.answer("No agents. Create one with <code>/newagent MyBot</code>")
+            await message.answer("No agents. Create one: <code>/newagent MyBot</code>")
             return
-        buttons = []
-        for a in agents:
-            buttons.append([InlineKeyboardButton(
-                text=f"🔄 {a.name} ({a.api_key_prefix})",
-                callback_data=f"rotate:{a.id}"
-            )])
-        buttons.append([InlineKeyboardButton(text="❌ Cancel", callback_data="rotate:cancel")])
+        buttons = [[InlineKeyboardButton(
+            text=f"🔄 {a.name}",
+            callback_data=f"rotate:{a.id}"
+        )] for a in agents]
+        buttons.append([InlineKeyboardButton(text="Cancel", callback_data="rotate:cancel")])
         await message.answer(
-            "🔄 <b>Rotate API key for which agent?</b>\n\n"
-            "⚠️ The old key will stop working immediately.",
+            "🔄 <b>Rotate key for which agent?</b>\n\n"
+            "⚠️ Old key stops working immediately.",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
         )
         return
@@ -269,15 +352,14 @@ async def cmd_rotatekey(message: Message):
         )
         agent = result.scalar_one_or_none()
         if not agent:
-            await message.answer(f"Agent '{name}' not found. Check /agents")
+            await message.answer(f"Agent '{name}' not found.")
             return
         new_key = await rotate_api_key(db, agent)
 
     await message.answer(
-        f"🔄 API key rotated for <b>{name}</b>!\n\n"
-        f"🔑 New API Key:\n<code>{new_key}</code>\n\n"
-        f"⚠️ <b>Save this key now — it will NOT be shown again!</b>\n"
-        f"The old key has been invalidated."
+        f"🔄 Key rotated for <b>{name}</b>\n\n"
+        f"🔑 New key:\n<code>{new_key}</code>\n\n"
+        f"⚠️ Save this — shown only once."
     )
 
 
@@ -300,10 +382,9 @@ async def callback_rotate(callback: CallbackQuery):
         new_key = await rotate_api_key(db, agent)
 
     await callback.message.edit_text(
-        f"🔄 API key rotated for <b>{name}</b>!\n\n"
-        f"🔑 New API Key:\n<code>{new_key}</code>\n\n"
-        f"⚠️ <b>Save this key now — it will NOT be shown again!</b>\n"
-        f"The old key has been invalidated."
+        f"🔄 Key rotated for <b>{name}</b>\n\n"
+        f"🔑 New key:\n<code>{new_key}</code>\n\n"
+        f"⚠️ Save this — shown only once."
     )
     await callback.answer()
 
@@ -319,17 +400,14 @@ async def cmd_delete(message: Message):
             await message.answer("No agents to delete.")
             return
 
-        buttons = []
-        for a in agents:
-            buttons.append([
-                InlineKeyboardButton(
-                    text=f"🗑 {a.name} (${a.balance_usd:.2f})",
-                    callback_data=f"del:{a.id}"
-                )
-            ])
-        buttons.append([InlineKeyboardButton(text="❌ Cancel", callback_data="del:cancel")])
+        buttons = [[InlineKeyboardButton(
+            text=f"🗑 {a.name} (${a.balance_usd:.2f})",
+            callback_data=f"del:{a.id}"
+        )] for a in agents]
+        buttons.append([InlineKeyboardButton(text="Cancel", callback_data="del:cancel")])
         await message.answer(
-            "⚠️ <b>Delete which agent?</b>\n\nThis is permanent. Remaining balance will be lost.",
+            "⚠️ <b>Delete which agent?</b>\n\n"
+            "This is permanent. Remaining balance will be lost.",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
         )
         return
@@ -342,14 +420,14 @@ async def cmd_delete(message: Message):
         )
         agent = result.scalar_one_or_none()
         if not agent:
-            await message.answer(f"Agent '{name}' not found. Check /agents")
+            await message.answer(f"Agent '{name}' not found.")
             return
 
         await cleanup_agent(agent.id)
         await db.delete(agent)
         await db.commit()
 
-    await message.answer(f"🗑 Agent <b>{name}</b> deleted.")
+    await message.answer(f"🗑 <b>{name}</b> deleted.")
 
 
 @router.callback_query(F.data.startswith("del:"))
@@ -368,7 +446,7 @@ async def callback_delete(callback: CallbackQuery):
             await cleanup_agent(agent.id)
             await db.delete(agent)
             await db.commit()
-            await callback.message.edit_text(f"🗑 Agent <b>{name}</b> deleted.")
+            await callback.message.edit_text(f"🗑 <b>{name}</b> deleted.")
         else:
             await callback.message.edit_text("Agent not found.")
     await callback.answer()
@@ -388,24 +466,25 @@ STAR_OPTIONS = [
 
 
 @router.message(Command("fund"))
-async def cmd_fund(message: Message):
+async def cmd_fund(message: Message, user_id: int = None):
+    uid = user_id or message.from_user.id
     async with async_session() as db:
-        user = await get_or_create_user(db, message.from_user.id)
+        user = await get_or_create_user(db, uid)
         agents = await get_user_agents(db, user)
 
     if not agents:
-        await message.answer("Create an agent first: <code>/newagent MyBot</code>")
+        await message.answer(
+            "Create an agent first:\n<code>/newagent MyBot</code>"
+        )
         return
 
-    buttons = []
-    for a in agents:
-        buttons.append([InlineKeyboardButton(
-            text=f"🤖 {a.name} (${a.balance_usd:.2f})",
-            callback_data=f"pick:{a.id}"
-        )])
+    buttons = [[InlineKeyboardButton(
+        text=f"🤖 {a.name} · ${a.balance_usd:.2f}",
+        callback_data=f"pick:{a.id}"
+    )] for a in agents]
 
     await message.answer(
-        "💫 <b>Fund an Agent</b>\n\nPick which agent to fund:",
+        "💰 <b>Fund Agent</b>\n\nWhich agent?",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
 
@@ -414,15 +493,13 @@ async def cmd_fund(message: Message):
 async def callback_pick_agent(callback: CallbackQuery):
     agent_id = callback.data.split(":")[1]
 
-    buttons = []
-    for stars, usd_str in STAR_OPTIONS:
-        buttons.append([InlineKeyboardButton(
-            text=f"⭐ {stars} ({usd_str})",
-            callback_data=f"fund:{agent_id}:{stars}"
-        )])
+    buttons = [[InlineKeyboardButton(
+        text=f"⭐ {stars}  →  {usd_str}",
+        callback_data=f"fund:{agent_id}:{stars}"
+    )] for stars, usd_str in STAR_OPTIONS]
 
     await callback.message.edit_text(
-        "💫 <b>Choose amount:</b>",
+        "💰 <b>Choose amount</b>",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
     await callback.answer()
@@ -467,11 +544,15 @@ async def successful_payment(message: Message):
                 external_ref=message.successful_payment.telegram_payment_charge_id,
                 description=f"⭐ {stars} Stars deposit",
             )
+
+            buttons = [
+                [InlineKeyboardButton(text="📊 View Agents", callback_data="action:agents")],
+            ]
+
             await message.answer(
-                f"✅ <b>Funded!</b>\n\n"
-                f"Agent: {agent.name}\n"
-                f"Added: ${usd:.2f} ({stars} ⭐)\n"
-                f"New balance: ${agent.balance_usd:.2f}"
+                f"✅ <b>${usd:.2f}</b> added to <b>{agent.name}</b>\n\n"
+                f"New balance: <b>${agent.balance_usd:.2f}</b>",
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
             )
         else:
             await message.answer("❌ Agent not found. Contact support.")
@@ -483,26 +564,29 @@ async def successful_payment(message: Message):
 
 @router.message(Command("history"))
 async def cmd_history(message: Message):
+    await cmd_history_for_user(message, message.from_user.id)
+
+
+async def cmd_history_for_user(message: Message, user_id: int):
     async with async_session() as db:
-        user = await get_or_create_user(db, message.from_user.id)
+        user = await get_or_create_user(db, user_id)
         agents = await get_user_agents(db, user)
 
         if not agents:
-            await message.answer("No agents. Create one with <code>/newagent MyBot</code>")
+            await message.answer("No agents yet. Create one: <code>/newagent MyBot</code>")
             return
 
-        lines = ["📜 <b>Recent Transactions</b>\n"]
+        lines = ["📜 <b>Recent Activity</b>\n"]
         found_any = False
         for a in agents:
             txs = await get_agent_transactions(db, a, limit=5)
             if txs:
                 found_any = True
-                lines.append(f"<b>{a.name}</b>:")
+                lines.append(f"<b>{a.name}</b>")
                 for tx in txs:
-                    icon = "💰" if tx.tx_type.value == "deposit" else "💸"
+                    icon = "↙" if tx.tx_type.value == "deposit" else "↗"
                     lines.append(
-                        f"  {icon} {tx.tx_type.value.upper()} ${tx.amount_usd:.2f}"
-                        f" — {tx.description or 'N/A'}"
+                        f"  {icon} ${tx.amount_usd:.2f} · {tx.description or 'N/A'}"
                     )
                 lines.append("")
 
@@ -526,14 +610,106 @@ async def cmd_stats(message: Message):
     active = sum(1 for a in agents if a.is_active)
     tier = "⭐ Pro" if user.is_pro else "Free"
 
-    lines = [
-        "📊 <b>Account Stats</b>\n",
-        f"👤 Plan: {tier}",
-        f"🤖 Agents: {active} active / {len(agents)} total",
-        f"💰 Total balance: ${total_balance:.2f}",
-        f"\nJoined: {user.created_at.strftime('%Y-%m-%d')}",
-    ]
-    await message.answer("\n".join(lines))
+    await message.answer(
+        "📊 <b>Account</b>\n\n"
+        f"Plan: {tier}\n"
+        f"Agents: {active} active / {len(agents)} total\n"
+        f"Balance: ${total_balance:.2f}\n"
+        f"Joined: {user.created_at.strftime('%b %d, %Y')}",
+    )
+
+
+# ═══════════════════════════════════════
+# DEMO COMMAND
+# ═══════════════════════════════════════
+
+@router.message(Command("demo"))
+async def cmd_demo(message: Message):
+    """Simulate an agent spending money in real-time."""
+    msg = await message.answer(
+        "🎬 <b>Live Demo — Agent Spending</b>\n\n"
+        "⏳ Initializing agent <b>demo-bot</b>..."
+    )
+    await asyncio.sleep(1.5)
+
+    await msg.edit_text(
+        "🎬 <b>Live Demo — Agent Spending</b>\n\n"
+        "✅ Agent <b>demo-bot</b> connected\n"
+        "💰 Balance: $50.00\n\n"
+        "⏳ Agent requesting API call..."
+    )
+    await asyncio.sleep(2)
+
+    await msg.edit_text(
+        "🎬 <b>Live Demo — Agent Spending</b>\n\n"
+        "✅ Agent <b>demo-bot</b> connected\n"
+        "💰 Balance: $50.00\n\n"
+        "↗ <b>SPEND</b> $2.50 — GPT-4 API call\n"
+        "   Status: ✅ completed\n"
+        "   Balance: $47.50\n\n"
+        "⏳ Agent making another purchase..."
+    )
+    await asyncio.sleep(2)
+
+    await msg.edit_text(
+        "🎬 <b>Live Demo — Agent Spending</b>\n\n"
+        "✅ Agent <b>demo-bot</b> connected\n"
+        "💰 Balance: $50.00\n\n"
+        "↗ <b>SPEND</b> $2.50 — GPT-4 API call ✅\n"
+        "↗ <b>SPEND</b> $0.75 — Web scraping (Firecrawl) ✅\n"
+        "   Balance: $46.75\n\n"
+        "⏳ Large purchase detected..."
+    )
+    await asyncio.sleep(2)
+
+    await msg.edit_text(
+        "🎬 <b>Live Demo — Agent Spending</b>\n\n"
+        "✅ Agent <b>demo-bot</b> connected\n"
+        "💰 Balance: $50.00\n\n"
+        "↗ $2.50 — GPT-4 API call ✅\n"
+        "↗ $0.75 — Web scraping ✅\n"
+        "⚠️ <b>APPROVAL NEEDED</b> $35.00 — Cloud GPU rental\n"
+        "   Exceeds auto-approve limit ($25)\n"
+        "   → Sent to owner for approval",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Approve", callback_data="demo:approve"),
+             InlineKeyboardButton(text="🚫 Deny", callback_data="demo:deny")],
+        ]),
+    )
+
+
+@router.callback_query(F.data == "demo:approve")
+async def callback_demo_approve(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "🎬 <b>Demo Complete!</b>\n\n"
+        "↗ $2.50 — GPT-4 API call ✅\n"
+        "↗ $0.75 — Web scraping ✅\n"
+        "↗ $35.00 — Cloud GPU rental ✅ <i>(approved)</i>\n\n"
+        "💰 Final balance: $11.75\n"
+        "📊 3 transactions · $38.25 spent\n\n"
+        "<i>That's AgentPay — your agent spends, you stay in control.</i>",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🤖 Create My Agent", callback_data="action:newagent_prompt")],
+        ]),
+    )
+    await callback.answer("Approved! ✅")
+
+
+@router.callback_query(F.data == "demo:deny")
+async def callback_demo_deny(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "🎬 <b>Demo Complete!</b>\n\n"
+        "↗ $2.50 — GPT-4 API call ✅\n"
+        "↗ $0.75 — Web scraping ✅\n"
+        "🚫 $35.00 — Cloud GPU rental ❌ <i>(denied)</i>\n\n"
+        "💰 Final balance: $46.75\n"
+        "📊 2 transactions · $3.25 spent\n\n"
+        "<i>You denied it — no funds were deducted. Full control.</i>",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🤖 Create My Agent", callback_data="action:newagent_prompt")],
+        ]),
+    )
+    await callback.answer("Denied! 🚫")
 
 
 # ═══════════════════════════════════════
@@ -543,39 +719,34 @@ async def cmd_stats(message: Message):
 @router.message(Command("revenue"))
 async def cmd_revenue(message: Message):
     if message.from_user.id != 5360481016:
-        return  # silent ignore
+        return
 
     from models.schema import PlatformRevenue
     from sqlalchemy import select, func
     from decimal import Decimal
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     async with async_session() as db:
-        # Total
         total = await db.execute(select(func.sum(PlatformRevenue.amount_usd)))
         total_usd = total.scalar() or Decimal("0")
 
-        # Today
-        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         today_result = await db.execute(
             select(func.sum(PlatformRevenue.amount_usd)).where(PlatformRevenue.created_at >= today)
         )
         today_usd = today_result.scalar() or Decimal("0")
 
-        # Count
         count_result = await db.execute(select(func.count(PlatformRevenue.id)))
         tx_count = count_result.scalar() or 0
 
-    lines = [
-        "💰 <b>Platform Revenue</b>\n",
-        f"📈 Total earned: <b>${total_usd:.4f}</b>",
-        f"📅 Today: <b>${today_usd:.4f}</b>",
-        f"🔢 Fee transactions: {tx_count}",
-        f"\n💳 Cashout wallet:",
-        f"<code>0xD51B231F317260FB86b47A38F14eA29Cc81E0073</code>",
-        f"\n<i>Revenue = 2% of every agent spend. Fees tracked per-transaction.</i>",
-    ]
-    await message.answer("\n".join(lines))
+    await message.answer(
+        "💰 <b>Revenue</b>\n\n"
+        f"Total: <b>${total_usd:.4f}</b>\n"
+        f"Today: <b>${today_usd:.4f}</b>\n"
+        f"Transactions: {tx_count}\n\n"
+        f"Cashout: <code>0xD51B231F317260FB86b47A38F14eA29Cc81E0073</code>\n"
+        f"<i>2% per agent spend</i>"
+    )
 
 
 # ═══════════════════════════════════════
@@ -584,8 +755,12 @@ async def cmd_revenue(message: Message):
 
 @router.message(Command("limits"))
 async def cmd_limits(message: Message):
+    await cmd_limits_for_user(message, message.from_user.id)
+
+
+async def cmd_limits_for_user(message: Message, user_id: int):
     async with async_session() as db:
-        user = await get_or_create_user(db, message.from_user.id)
+        user = await get_or_create_user(db, user_id)
         agents = await get_user_agents(db, user)
 
     if not agents:
@@ -596,23 +771,22 @@ async def cmd_limits(message: Message):
     for a in agents:
         lines.append(
             f"<b>{a.name}</b>\n"
-            f"  Per transaction: ${a.tx_limit_usd:.2f}\n"
-            f"  Daily max: ${a.daily_limit_usd:.2f}\n"
+            f"  Per tx: ${a.tx_limit_usd:.2f} · Daily: ${a.daily_limit_usd:.2f}\n"
         )
-    lines.append("Change with /setlimit")
-    await message.answer("\n".join(lines))
+
+    await message.answer(
+        "\n".join(lines) + "\nChange: /setlimit <code>Agent daily 100</code>",
+    )
 
 
 @router.message(Command("setlimit"))
 async def cmd_setlimit(message: Message):
     args = message.text.split()
-    # /setlimit AgentName daily 100
     if len(args) < 4:
         await message.answer(
             "Usage:\n"
             "<code>/setlimit AgentName daily 100</code>\n"
-            "<code>/setlimit AgentName tx 25</code>\n\n"
-            "Set daily max or per-transaction limit in USD."
+            "<code>/setlimit AgentName tx 25</code>"
         )
         return
 
@@ -621,15 +795,15 @@ async def cmd_setlimit(message: Message):
     try:
         value = Decimal(args[3])
     except Exception:
-        await message.answer("Invalid amount. Use a number like 50 or 100.00")
+        await message.answer("Invalid amount.")
         return
 
     if limit_type not in ("daily", "tx"):
-        await message.answer("Limit type must be <code>daily</code> or <code>tx</code>")
+        await message.answer("Use <code>daily</code> or <code>tx</code>")
         return
 
     if value <= 0 or value > 10000:
-        await message.answer("Limit must be between $0.01 and $10,000")
+        await message.answer("Must be $0.01–$10,000")
         return
 
     async with async_session() as db:
@@ -639,7 +813,7 @@ async def cmd_setlimit(message: Message):
         )
         agent = result.scalar_one_or_none()
         if not agent:
-            await message.answer(f"Agent '{name}' not found. Check /agents")
+            await message.answer(f"Agent '{name}' not found.")
             return
 
         if limit_type == "daily":
@@ -650,15 +824,11 @@ async def cmd_setlimit(message: Message):
         await db.commit()
 
     label = "Daily limit" if limit_type == "daily" else "Per-tx limit"
-    await message.answer(f"✅ {label} for <b>{name}</b> set to ${value:.2f}")
+    await message.answer(f"✅ <b>{name}</b> {label}: ${value:.2f}")
 
 
 # ═══════════════════════════════════════
-# MAIN
-# ═══════════════════════════════════════
-
-# ═══════════════════════════════════════
-# WALLET (Multi-Chain: Base, Polygon, BNB, Solana)
+# WALLET (Multi-Chain)
 # ═══════════════════════════════════════
 
 CHAIN_LABELS = {
@@ -676,7 +846,7 @@ async def cmd_wallet(message: Message):
         agents = await get_user_agents(db, user)
 
     if not agents:
-        await message.answer("No agents. Create one with <code>/newagent MyBot</code>")
+        await message.answer("No agents. Create one: <code>/newagent MyBot</code>")
         return
 
     buttons = []
@@ -686,40 +856,36 @@ async def cmd_wallet(message: Message):
         if evm_addr or sol_addr:
             label = f"📊 {a.name}"
             if evm_addr:
-                label += f" — EVM: {evm_addr[:6]}...{evm_addr[-4:]}"
+                label += f" · {evm_addr[:6]}…{evm_addr[-4:]}"
             buttons.append([InlineKeyboardButton(
                 text=label,
                 callback_data=f"wchains:{a.id}"
             )])
         else:
             buttons.append([InlineKeyboardButton(
-                text=f"🔗 Create wallet for {a.name}",
+                text=f"🔗 Create wallet — {a.name}",
                 callback_data=f"wcreate:{a.id}"
             )])
 
     await message.answer(
-        "🔗 <b>On-Chain Wallets (Multi-Chain)</b>\n\n"
-        "Each agent can have wallets on:\n"
-        "🔵 Base  🟣 Polygon  🟡 BNB Chain  🟢 Solana\n\n"
-        "EVM chains share the same address. Solana has a separate one.",
+        "🔗 <b>On-Chain Wallets</b>\n\n"
+        "🔵 Base  🟣 Polygon  🟡 BNB  🟢 Solana\n\n"
+        "EVM chains share one address. Solana is separate.",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
 
 
 @router.callback_query(F.data.startswith("wchains:"))
 async def callback_wallet_chains(callback: CallbackQuery):
-    """Show chain selection for an agent's wallet."""
     agent_id = callback.data.split(":")[1]
 
-    buttons = []
-    for chain_key, (emoji, name) in CHAIN_LABELS.items():
-        buttons.append([InlineKeyboardButton(
-            text=f"{emoji} {name}",
-            callback_data=f"winfo:{agent_id}:{chain_key}"
-        )])
+    buttons = [[InlineKeyboardButton(
+        text=f"{emoji} {name}",
+        callback_data=f"winfo:{agent_id}:{chain_key}"
+    )] for chain_key, (emoji, name) in CHAIN_LABELS.items()]
 
     await callback.message.edit_text(
-        "🔗 <b>Select chain to view balance:</b>",
+        "🔗 <b>Select chain:</b>",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
     await callback.answer()
@@ -737,18 +903,15 @@ async def callback_create_wallet(callback: CallbackQuery):
         await callback.answer("Agent not found", show_alert=True)
         return
 
-    await callback.message.edit_text("⏳ Creating wallets (EVM + Solana)...")
+    await callback.message.edit_text("⏳ Creating wallets...")
 
     try:
-        # Create EVM wallet (works on Base, Polygon, BNB)
         evm_info = create_agent_wallet(agent_id)
         evm_address = evm_info["address"]
 
-        # Create Solana wallet
         sol_info = create_solana_wallet(agent_id)
         sol_address = sol_info["address"]
 
-        # Update agent's wallet record in DB
         async with async_session() as db:
             from models.schema import Wallet
             result = await db.execute(
@@ -768,17 +931,14 @@ async def callback_create_wallet(callback: CallbackQuery):
             await db.commit()
 
         await callback.message.edit_text(
-            f"✅ <b>Wallets Created!</b>\n\n"
-            f"Agent: <b>{agent.name}</b>\n\n"
-            f"🔵🟣🟡 <b>EVM Address</b> (Base/Polygon/BNB):\n"
-            f"<code>{evm_address}</code>\n\n"
-            f"🟢 <b>Solana Address</b>:\n"
-            f"<code>{sol_address}</code>\n\n"
-            f"Check balances with /wallet"
+            f"✅ <b>Wallets ready — {agent.name}</b>\n\n"
+            f"🔵🟣🟡 EVM:\n<code>{evm_address}</code>\n\n"
+            f"🟢 Solana:\n<code>{sol_address}</code>\n\n"
+            f"Check balances: /wallet"
         )
     except Exception as e:
         logger.error(f"Wallet creation failed: {e}", exc_info=True)
-        await callback.message.edit_text(f"❌ Wallet creation failed: {e}")
+        await callback.message.edit_text(f"❌ Failed: {e}")
 
     await callback.answer()
 
@@ -802,7 +962,6 @@ async def callback_wallet_info(callback: CallbackQuery):
     if chain == "solana":
         address = get_solana_wallet_address(agent_id)
         if not address:
-            # Auto-create
             sol_info = create_solana_wallet(agent_id)
             address = sol_info["address"]
         balance_info = get_solana_balance(agent_id)
@@ -818,17 +977,15 @@ async def callback_wallet_info(callback: CallbackQuery):
         native_balance = balance_info.get("balance_native", "0")
 
     usdc_balance = balance_info.get("balance_usdc", "0")
-    explorer = balance_info.get("explorer", "")
 
-    buttons = [[InlineKeyboardButton(text="← Back to chains", callback_data=f"wchains:{agent_id}")]]
+    buttons = [[InlineKeyboardButton(text="← Back", callback_data=f"wchains:{agent_id}")]]
 
     await callback.message.edit_text(
-        f"{emoji} <b>{agent.name} — {chain_name}</b>\n\n"
-        f"Address:\n<code>{address}</code>\n\n"
-        f"💰 {native_token}: {native_balance}\n"
-        f"💵 USDC: {usdc_balance}\n"
-        f"🌐 Network: {balance_info.get('network', 'N/A')}\n\n"
-        f"Send {native_token} or USDC to this address on {chain_name}.",
+        f"{emoji} <b>{agent.name} · {chain_name}</b>\n\n"
+        f"<code>{address}</code>\n\n"
+        f"{native_token}: {native_balance}\n"
+        f"USDC: {usdc_balance}\n\n"
+        f"Send tokens to this address on {chain_name}.",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
     await callback.answer()
@@ -845,7 +1002,7 @@ async def cmd_card(message: Message):
         agents = await get_user_agents(db, user)
 
     if not agents:
-        await message.answer("No agents. Create one with <code>/newagent MyBot</code>")
+        await message.answer("No agents. Create one: <code>/newagent MyBot</code>")
         return
 
     buttons = []
@@ -854,19 +1011,18 @@ async def cmd_card(message: Message):
         if details:
             state_icon = "🟢" if details["state"] == "OPEN" else "🔴" if details["state"] == "CLOSED" else "⏸"
             buttons.append([InlineKeyboardButton(
-                text=f"{state_icon} {a.name} — ****{details['last4']}",
+                text=f"{state_icon} {a.name} · ****{details['last4']}",
                 callback_data=f"cinfo:{a.id}"
             )])
         else:
             buttons.append([InlineKeyboardButton(
-                text=f"💳 Create card for {a.name}",
+                text=f"💳 Create card — {a.name}",
                 callback_data=f"ccreate:{a.id}"
             )])
 
     await message.answer(
         "💳 <b>Virtual Cards</b>\n\n"
-        "Each agent can have a virtual Visa card for online purchases.\n"
-        "Your agent can use it to pay for APIs, services, subscriptions.",
+        "Issue a Visa card your agent can use for online purchases.",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
 
@@ -883,36 +1039,32 @@ async def callback_create_card(callback: CallbackQuery):
         await callback.answer("Agent not found", show_alert=True)
         return
 
-    await callback.message.edit_text("⏳ Creating virtual card...")
+    await callback.message.edit_text("⏳ Creating card...")
 
     try:
         card_info = create_virtual_card(
             agent_id,
-            spend_limit=5000,  # $50 monthly default
+            spend_limit=5000,
             memo=f"AgentPay - {agent.name}",
         )
 
         limit_usd = card_info.get("spend_limit_cents", 5000) / 100
 
         await callback.message.edit_text(
-            f"✅ <b>Virtual Card Created!</b>\n\n"
-            f"Agent: {agent.name}\n"
+            f"✅ <b>Card created — {agent.name}</b>\n\n"
             f"Card: ****{card_info['last4']}\n"
             f"Expires: {card_info['exp_month']}/{card_info['exp_year']}\n"
-            f"Monthly limit: ${limit_usd:.0f}\n"
-            f"Status: {card_info['state']}\n\n"
-            f"Use /carddetails to see full card number.\n"
-            f"Use /cardpause or /cardclose to manage."
+            f"Limit: ${limit_usd:.0f}/mo\n\n"
+            f"Use /card to manage."
         )
     except ValueError as e:
         await callback.message.edit_text(
-            f"⚠️ <b>Lithic API key needed</b>\n\n"
-            f"Get a free sandbox key at:\nhttps://app.lithic.com/signup\n\n"
-            f"Error: {e}"
+            f"⚠️ Lithic API key needed\n\n"
+            f"Get one at: https://app.lithic.com/signup"
         )
     except Exception as e:
         logger.error(f"Card creation failed: {e}", exc_info=True)
-        await callback.message.edit_text(f"❌ Card creation failed: {e}")
+        await callback.message.edit_text(f"❌ Failed: {e}")
 
     await callback.answer()
 
@@ -939,25 +1091,22 @@ async def callback_card_info(callback: CallbackQuery):
 
     buttons = []
     if details["state"] == "OPEN":
+        buttons.append([InlineKeyboardButton(text="👁 Show Details", callback_data=f"cfull:{agent_id}")])
         buttons.append([
-            InlineKeyboardButton(text="👁 Show Full Details", callback_data=f"cfull:{agent_id}"),
-        ])
-        buttons.append([
-            InlineKeyboardButton(text="⏸ Pause Card", callback_data=f"cpause:{agent_id}"),
-            InlineKeyboardButton(text="🔴 Close Card", callback_data=f"cclose:{agent_id}"),
+            InlineKeyboardButton(text="⏸ Pause", callback_data=f"cpause:{agent_id}"),
+            InlineKeyboardButton(text="🔴 Close", callback_data=f"cclose:{agent_id}"),
         ])
     elif details["state"] == "PAUSED":
         buttons.append([
-            InlineKeyboardButton(text="▶️ Resume Card", callback_data=f"cresume:{agent_id}"),
-            InlineKeyboardButton(text="🔴 Close Card", callback_data=f"cclose:{agent_id}"),
+            InlineKeyboardButton(text="▶️ Resume", callback_data=f"cresume:{agent_id}"),
+            InlineKeyboardButton(text="🔴 Close", callback_data=f"cclose:{agent_id}"),
         ])
 
     await callback.message.edit_text(
-        f"💳 <b>{agent.name} — Card</b>\n\n"
-        f"Card: ****{details['last4']}\n"
-        f"Expires: {details['exp_month']}/{details['exp_year']}\n"
+        f"💳 <b>{agent.name}</b>\n\n"
+        f"****{details['last4']} · {details['exp_month']}/{details['exp_year']}\n"
         f"Status: {state_icon} {details['state']}\n"
-        f"Monthly limit: ${limit_usd:.0f}",
+        f"Limit: ${limit_usd:.0f}/mo",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons) if buttons else None,
     )
     await callback.answer()
@@ -972,16 +1121,14 @@ async def callback_card_full(callback: CallbackQuery):
         await callback.answer("No card found", show_alert=True)
         return
 
-    # Send as a separate message that auto-deletes (sensitive info)
     msg = await callback.message.answer(
-        f"🔐 <b>Card Details</b> (sensitive)\n\n"
+        f"🔐 <b>Card Details</b>\n\n"
         f"Number: <code>{details.get('pan', 'N/A')}</code>\n"
         f"Expiry: <code>{details['exp_month']}/{details['exp_year']}</code>\n"
         f"CVV: <code>{details.get('cvv', 'N/A')}</code>\n\n"
-        f"⚠️ This message will be deleted in 60 seconds."
+        f"⚠️ Deletes in 60s"
     )
 
-    # Schedule deletion
     asyncio.get_event_loop().call_later(
         60, lambda: asyncio.ensure_future(msg.delete())
     )
@@ -993,7 +1140,7 @@ async def callback_pause_card(callback: CallbackQuery):
     agent_id = callback.data.split(":")[1]
     result = update_card_state(agent_id, "PAUSED")
     if result["success"]:
-        await callback.message.edit_text("⏸ Card paused. Use /card to resume.")
+        await callback.message.edit_text("⏸ Card paused. /card to resume.")
     else:
         await callback.answer(f"Error: {result['error']}", show_alert=True)
     await callback.answer()
@@ -1004,7 +1151,7 @@ async def callback_resume_card(callback: CallbackQuery):
     agent_id = callback.data.split(":")[1]
     result = update_card_state(agent_id, "OPEN")
     if result["success"]:
-        await callback.message.edit_text("▶️ Card resumed! Use /card to view.")
+        await callback.message.edit_text("▶️ Card resumed!")
     else:
         await callback.answer(f"Error: {result['error']}", show_alert=True)
     await callback.answer()
@@ -1014,11 +1161,11 @@ async def callback_resume_card(callback: CallbackQuery):
 async def callback_close_card(callback: CallbackQuery):
     agent_id = callback.data.split(":")[1]
     buttons = [[
-        InlineKeyboardButton(text="⚠️ Yes, close permanently", callback_data=f"ccloseconfirm:{agent_id}"),
-        InlineKeyboardButton(text="❌ Cancel", callback_data=f"cinfo:{agent_id}"),
+        InlineKeyboardButton(text="⚠️ Yes, close", callback_data=f"ccloseconfirm:{agent_id}"),
+        InlineKeyboardButton(text="Cancel", callback_data=f"cinfo:{agent_id}"),
     ]]
     await callback.message.edit_text(
-        "⚠️ <b>Close card permanently?</b>\n\nThis cannot be undone.",
+        "⚠️ <b>Close card permanently?</b>\n\nCan't be undone.",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
     await callback.answer()
@@ -1029,14 +1176,14 @@ async def callback_close_card_confirm(callback: CallbackQuery):
     agent_id = callback.data.split(":")[1]
     result = update_card_state(agent_id, "CLOSED")
     if result["success"]:
-        await callback.message.edit_text("🔴 Card permanently closed.")
+        await callback.message.edit_text("🔴 Card closed permanently.")
     else:
         await callback.answer(f"Error: {result['error']}", show_alert=True)
     await callback.answer()
 
 
 # ═══════════════════════════════════════
-# APPROVAL WORKFLOW (Telegram inline buttons)
+# APPROVAL WORKFLOW
 # ═══════════════════════════════════════
 
 @router.callback_query(F.data.startswith("approve:"))
@@ -1045,32 +1192,27 @@ async def callback_approve(callback: CallbackQuery):
     approval = get_pending_approval(approval_id)
 
     if not approval:
-        await callback.answer("Expired or already resolved", show_alert=True)
+        await callback.answer("Expired or resolved", show_alert=True)
         return
 
     if approval.telegram_id != callback.from_user.id:
         await callback.answer("Not your approval", show_alert=True)
         return
 
-    # Resolve approval
     resolve_approval(approval_id, approved=True)
 
-    # Execute the spend
     async with async_session() as db:
         tx, error = await execute_approved_spend(
             db, approval.agent_id, approval.amount_usd, approval.description
         )
 
     if error:
-        await callback.message.edit_text(
-            f"❌ Approved but failed: {error}\n\n"
-            f"(Balance may have changed since request)"
-        )
+        await callback.message.edit_text(f"❌ Approved but failed: {error}")
     else:
         await callback.message.edit_text(
-            f"✅ <b>Approved!</b>\n\n"
+            f"✅ <b>Approved</b>\n\n"
             f"<b>{approval.agent_name}</b> spent ${float(approval.amount_usd):.2f}\n"
-            f"{'For: ' + approval.description if approval.description else ''}"
+            f"{'· ' + approval.description if approval.description else ''}"
         )
     await callback.answer()
 
@@ -1081,7 +1223,7 @@ async def callback_deny(callback: CallbackQuery):
     approval = get_pending_approval(approval_id)
 
     if not approval:
-        await callback.answer("Expired or already resolved", show_alert=True)
+        await callback.answer("Expired or resolved", show_alert=True)
         return
 
     if approval.telegram_id != callback.from_user.id:
@@ -1092,16 +1234,14 @@ async def callback_deny(callback: CallbackQuery):
 
     await callback.message.edit_text(
         f"🚫 <b>Denied</b>\n\n"
-        f"<b>{approval.agent_name}</b> wanted to spend ${float(approval.amount_usd):.2f}\n"
-        f"{'For: ' + approval.description if approval.description else ''}\n\n"
-        f"No funds were deducted."
+        f"<b>{approval.agent_name}</b> — ${float(approval.amount_usd):.2f}\n"
+        f"No funds deducted."
     )
     await callback.answer()
 
 
 @router.message(Command("approvals"))
 async def cmd_approvals(message: Message):
-    """Show pending approvals for this user."""
     from core.approvals import get_user_pending
     pending = get_user_pending(message.from_user.id)
 
@@ -1109,21 +1249,20 @@ async def cmd_approvals(message: Message):
         await message.answer("✅ No pending approvals.")
         return
 
-    text = f"⏳ <b>{len(pending)} Pending Approval(s)</b>\n\n"
+    text = f"⏳ <b>{len(pending)} Pending</b>\n\n"
     for a in pending:
-        text += (
-            f"• <b>{a.agent_name}</b>: ${float(a.amount_usd):.2f}\n"
-            f"  {a.description or 'No description'}\n\n"
-        )
+        text += f"• <b>{a.agent_name}</b>: ${float(a.amount_usd):.2f}\n  {a.description or 'No description'}\n\n"
     await message.answer(text)
 
 
 @router.message(Command("setapprove"))
 async def cmd_set_approve(message: Message):
-    """Set auto-approve threshold: /setapprove MyBot 25"""
     parts = message.text.split(maxsplit=2) if message.text else []
     if len(parts) < 3:
-        await message.answer("Usage: <code>/setapprove AgentName Amount</code>\n\nExample: /setapprove MyBot 25")
+        await message.answer(
+            "Usage: <code>/setapprove AgentName 25</code>\n\n"
+            "Spends above this amount need your approval."
+        )
         return
 
     agent_name = parts[1]
@@ -1134,7 +1273,7 @@ async def cmd_set_approve(message: Message):
         return
 
     if threshold < 0 or threshold > 10000:
-        await message.answer("Threshold must be between $0 and $10,000.")
+        await message.answer("Must be $0–$10,000.")
         return
 
     async with async_session() as db:
@@ -1153,23 +1292,22 @@ async def cmd_set_approve(message: Message):
         await db.commit()
 
     if threshold == 0:
-        await message.answer(f"✅ <b>{agent.name}</b>: ALL spends now require approval.")
+        await message.answer(f"✅ <b>{agent.name}</b>: all spends need approval")
     else:
-        await message.answer(f"✅ <b>{agent.name}</b>: Auto-approve up to ${threshold}. Above → needs your approval.")
+        await message.answer(f"✅ <b>{agent.name}</b>: auto-approve up to ${threshold}")
 
 
 # ═══════════════════════════════════════
-# REFUND & TRANSFER COMMANDS
+# REFUND & TRANSFER
 # ═══════════════════════════════════════
 
 @router.message(Command("refund"))
 async def cmd_refund(message: Message):
-    """Refund a spend transaction: /refund TransactionID"""
     parts = message.text.split(maxsplit=1) if message.text else []
     if len(parts) < 2:
         await message.answer(
             "Usage: <code>/refund TransactionID</code>\n\n"
-            "Find transaction IDs in /history"
+            "Find IDs in /history or /export"
         )
         return
 
@@ -1180,10 +1318,9 @@ async def cmd_refund(message: Message):
         agents = await get_user_agents(db, user)
 
     if not agents:
-        await message.answer("You have no agents.")
+        await message.answer("No agents.")
         return
 
-    # Try refund against each agent (user may not know which agent the tx belongs to)
     for agent in agents:
         async with async_session() as db:
             result = await db.execute(select(Agent).where(Agent.id == agent.id))
@@ -1191,27 +1328,25 @@ async def cmd_refund(message: Message):
             tx, error = await refund(db, a, tx_id)
             if tx:
                 await message.answer(
-                    f"✅ <b>Refunded!</b>\n\n"
-                    f"Agent: {a.name}\n"
-                    f"Amount: ${float(tx.amount_usd):.2f}\n"
-                    f"New balance: ${float(a.balance_usd):.2f}"
+                    f"✅ <b>Refunded</b>\n\n"
+                    f"{a.name}: +${float(tx.amount_usd):.2f}\n"
+                    f"Balance: ${float(a.balance_usd):.2f}"
                 )
                 return
             if error and "not found" not in error.lower():
                 await message.answer(f"❌ {error}")
                 return
 
-    await message.answer("❌ Transaction not found. Check the ID with /history")
+    await message.answer("❌ Transaction not found.")
 
 
 @router.message(Command("transfer"))
 async def cmd_transfer(message: Message):
-    """Transfer between agents: /transfer FromAgent ToAgent Amount"""
     parts = message.text.split() if message.text else []
     if len(parts) < 4:
         await message.answer(
-            "Usage: <code>/transfer FromAgent ToAgent Amount</code>\n\n"
-            "Example: /transfer MyBot Helper 5.00"
+            "Usage: <code>/transfer From To Amount</code>\n\n"
+            "Example: <code>/transfer MyBot Helper 5.00</code>"
         )
         return
 
@@ -1253,20 +1388,18 @@ async def cmd_transfer(message: Message):
         await message.answer(f"❌ {error}")
     else:
         await message.answer(
-            f"✅ <b>Transferred!</b>\n\n"
-            f"${float(amount):.2f} from <b>{from_agent.name}</b> → <b>{to_agent.name}</b>"
+            f"✅ ${float(amount):.2f}: <b>{from_agent.name}</b> → <b>{to_agent.name}</b>"
         )
 
 
 @router.message(Command("export"))
 async def cmd_export(message: Message):
-    """Export transaction history as CSV."""
     async with async_session() as db:
         user = await get_or_create_user(db, message.from_user.id)
         agents = await get_user_agents(db, user)
 
     if not agents:
-        await message.answer("No agents found.")
+        await message.answer("No agents.")
         return
 
     import csv, io
@@ -1293,19 +1426,23 @@ async def cmd_export(message: Message):
     csv_bytes = output.getvalue().encode("utf-8")
     from aiogram.types import BufferedInputFile
     doc = BufferedInputFile(csv_bytes, filename="agentpay-transactions.csv")
-    await message.answer_document(doc, caption="📄 Your transaction history")
+    await message.answer_document(doc, caption="📄 Transaction history")
 
 
 # ═══════════════════════════════════════
-# ERROR HANDLER & CATCH-ALL
+# CATCH-ALL
 # ═══════════════════════════════════════
 
 @router.message()
 async def catch_all(message: Message):
-    """Log unhandled messages for debugging."""
     logger.info(f"Unhandled message from {message.from_user.id}: {message.text!r}")
     if message.text and message.text.startswith("/"):
-        await message.answer("Unknown command. Try /help")
+        await message.answer(
+            "Unknown command. Try /help",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="📖 Help", callback_data="action:help")],
+            ]),
+        )
 
 
 dp.include_router(router)
@@ -1322,7 +1459,6 @@ async def main():
     await init_db()
     logger.info("✅ Database initialized")
 
-    # Register bot instance for Telegram notifications
     set_webhook_bot(bot)
     logger.info("✅ Webhook notifications enabled")
 
