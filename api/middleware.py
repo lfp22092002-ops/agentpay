@@ -33,12 +33,24 @@ API_KEY_RATE_LIMIT = 60  # requests per minute
 API_KEY_RATE_WINDOW = 60  # seconds
 
 
+_last_gc = 0.0
+_GC_INTERVAL = 300  # purge stale keys every 5 minutes
+
+
 def check_api_key_rate_limit(api_key: str) -> bool:
     """Return True if allowed, False if rate-limited. Uses hash to avoid storing raw keys in memory."""
+    global _last_gc
     now = time.time()
     cutoff = now - API_KEY_RATE_WINDOW
     key_id = hashlib.sha256(api_key.encode()).hexdigest()[:16]
     with _rate_lock:
+        # Periodic GC: remove keys with no recent requests
+        if now - _last_gc > _GC_INTERVAL:
+            stale = [k for k, dq in _api_key_requests.items() if not dq or dq[-1] < cutoff]
+            for k in stale:
+                del _api_key_requests[k]
+            _last_gc = now
+
         dq = _api_key_requests.get(key_id)
         if dq is None:
             dq = collections.deque()
@@ -70,7 +82,9 @@ async def log_requests_middleware(request: Request, call_next):
     response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
     if "server" in response.headers:
         del response.headers["server"]
-    logger.info(f"{request.method} {request.url.path} → {response.status_code} ({duration:.3f}s)")
+    # Skip noisy health check logs
+    if request.url.path != "/v1/health":
+        logger.info(f"{request.method} {request.url.path} → {response.status_code} ({duration:.3f}s)")
     return response
 
 
