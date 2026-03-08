@@ -5,7 +5,6 @@ All Coinbase AgentKit calls are mocked — no CDP API keys needed.
 """
 import json
 import os
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import pytest

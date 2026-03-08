@@ -7,8 +7,7 @@ without hitting real RPCs.
 import json
 import os
 import sys
-from unittest.mock import patch, MagicMock, AsyncMock
-from pathlib import Path
+from unittest.mock import patch, MagicMock
 
 import pytest
 

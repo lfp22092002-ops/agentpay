@@ -2,9 +2,7 @@
 Tests for providers/telegram_stars.py — Stars ↔ USD conversion.
 """
 from decimal import Decimal
-from unittest.mock import patch
 
-import pytest
 
 
 class TestStarsToUsd:

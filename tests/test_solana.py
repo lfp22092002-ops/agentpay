@@ -5,10 +5,8 @@ Uses mocked solders/solana-py to test wallet creation, address lookup,
 balance queries, and send operations without real RPC connections.
 """
 import json
-import os
 import base64
-from pathlib import Path
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 
 import pytest
 

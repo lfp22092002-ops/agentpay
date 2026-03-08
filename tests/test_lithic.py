@@ -6,12 +6,8 @@ detail retrieval, and spend limit updates without a real API key.
 """
 import json
 import os
-import tempfile
-from decimal import Decimal
-from pathlib import Path
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 
-import pytest
 
 # We need to set env before import
 os.environ.setdefault("LITHIC_API_KEY", "test-lithic-key-sandbox")

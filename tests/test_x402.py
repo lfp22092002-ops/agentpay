@@ -8,7 +8,6 @@ import json
 import os
 import sys
 from unittest.mock import patch, MagicMock, AsyncMock
-from pathlib import Path
 
 import pytest
 
@@ -79,7 +78,6 @@ class TestX402Client:
     async def test_non_402_passes_through(self, tmp_path):
         """Non-402 response is returned directly without payment."""
         from providers.x402_protocol import pay_x402_resource
-        import httpx
 
         wallets_dir = mock_wallet_file(tmp_path)
 

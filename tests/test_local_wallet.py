@@ -5,12 +5,8 @@ Tests wallet creation, address derivation, balance checks, and USDC transfers
 using mocked Web3/eth_account. No real RPC calls or private keys.
 """
 import json
-import os
-from pathlib import Path
-from decimal import Decimal
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 
-import pytest
 
 
 class MockAccount:
