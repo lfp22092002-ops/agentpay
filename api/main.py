@@ -149,6 +149,11 @@ async def favicon():
 async def sitemap_xml():
     return FileResponse(os.path.join(_static_dir, "sitemap.xml"), media_type="application/xml")
 
+@app.get("/og-image.svg", include_in_schema=False)
+async def og_image():
+    return FileResponse(os.path.join(_project_dir, "landing", "og-image.svg"), media_type="image/svg+xml")
+
+app.mount("/.well-known", StaticFiles(directory=os.path.join(_project_dir, "landing", ".well-known")), name="well-known")
 app.mount("/app", StaticFiles(directory=os.path.join(_project_dir, "miniapp"), html=True), name="miniapp")
 app.mount("/docs-site", StaticFiles(directory=os.path.join(_project_dir, "landing", "docs"), html=True), name="docs-site")
 app.mount("/landing", StaticFiles(directory=os.path.join(_project_dir, "landing"), html=True), name="landing")
