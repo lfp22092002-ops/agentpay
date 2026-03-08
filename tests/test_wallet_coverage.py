@@ -7,11 +7,11 @@ import pytest
 from decimal import Decimal
 from unittest.mock import patch, AsyncMock
 
-from models.schema import TransactionType, TransactionStatus, PaymentMethod, Agent
+from models.schema import TransactionType, PaymentMethod, Agent
 from core.wallet import (
     deposit, spend, execute_approved_spend, get_daily_spent,
     _check_idempotency, _get_agent_user, transfer_between_agents,
-    get_or_create_user, create_agent, get_agent_transactions,
+    get_or_create_user, get_agent_transactions,
 )
 
 
