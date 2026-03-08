@@ -30,12 +30,19 @@ All notable changes to AgentPay will be documented in this file.
 - **Provider tests** — Lithic card (10), local wallet (26), Solana wallet (11), x402 protocol (13), Coinbase wallet + Stars (23)
 - **Extended webhook tests** (`test_webhooks_extended.py`) — 16 tests (retries, DB ops, approval notifications)
 - **Async SDK tests** (`test_async_sdk.py`) — 20 tests (balance, wallet, spend, refund, transfer, webhooks, x402, errors)
+- **Wallet coverage tests** (`test_wallet_coverage.py`) — 18 tests (deposit notifications, approved spend, idempotency, daily spent)
 - **Wallet send tests** (`test_wallet_send.py`) — 12 tests (USDC/native transfers, multi-chain, error handling)
 - **EVM wallet tests** (`test_evm_wallet.py`) — 10 tests (creation, address, balance, chain config)
 - **ruff.toml** — centralized lint config with per-file ignores
 - **`robots.txt`** + **`favicon.svg`** + **`sitemap.xml`** — SEO essentials
+- **`.env.example`** for quick setup
+- **Dockerfile + docker-compose** (API, bot, PostgreSQL, Redis)
+- **`Makefile`** for common dev tasks
+- **`security.txt`** + `.well-known` mount
+- OG image route + social preview meta tags
 - **Getting started guide** (`docs/getting-started.md`) — 10-step walkthrough
-- Total test count: **382 tests** (381 passing, 1 skipped), **84% code coverage**
+- **Python SDK README** (`sdk/agentpay/README.md`)
+- Total test count: **400 tests** (399 passing, 1 skipped), **84% code coverage**
 
 ### Changed
 - Lint cleanup: 161 auto-fixes + manual fixes (unused imports, variables, whitespace, `is_()` comparisons)
