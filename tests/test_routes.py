@@ -6,7 +6,7 @@ Uses FastAPI TestClient with in-memory SQLite to test the full HTTP cycle.
 import os
 import sys
 from decimal import Decimal
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
