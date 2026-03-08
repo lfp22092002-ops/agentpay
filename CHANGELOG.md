@@ -23,7 +23,11 @@ All notable changes to AgentPay will be documented in this file.
 - **OpenAPI spec export** (`openapi.json`) — 37 endpoints, 39KB
 - **CONTRIBUTING.md** — dev setup, test instructions, PR workflow
 - CI badge in README.md
-- Total test count: **211 passing** (73% coverage)
+- **Examples directory** (`examples/`) — basic_usage.py/ts, openai_agent.py, webhook_receiver.py
+- **Admin endpoint tests** (`test_admin.py`) — 8 tests
+- **Identity/directory tests** (`test_identity.py`) — 15 tests
+- **Mini App endpoint tests** (`test_miniapp.py`) — 32 tests
+- Total test count: **283 tests** (282 passing, 1 skipped)
 
 ### Changed
 - Lint cleanup: 161 auto-fixes + manual fixes (unused imports, variables, whitespace, `is_()` comparisons)
