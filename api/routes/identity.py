@@ -28,7 +28,11 @@ def _calculate_trust_score(identity, agent) -> TrustScoreBreakdown:
     """Calculate trust score (0-100) based on activity and profile."""
     now = datetime.now(timezone.utc)
 
-    age_weeks = (now - agent.created_at).days / 7
+    created = agent.created_at
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+
+    age_weeks = (now - created).days / 7
     account_age_pts = min(int(age_weeks), 15)
 
     tx_count_pts = min(identity.total_transactions // 10, 25)
