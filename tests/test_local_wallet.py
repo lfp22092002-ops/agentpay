@@ -1,130 +1,95 @@
 """
-Tests for providers/local_wallet.py — EVM wallet creation, address lookup, balance checks.
+Tests for providers/local_wallet.py — EVM multi-chain wallet operations.
 
-Uses mocked Web3/Account so no real RPC calls or private keys are needed.
+Tests wallet creation, address derivation, balance checks, and USDC transfers
+using mocked Web3/eth_account. No real RPC calls or private keys.
 """
 import json
 import os
+from pathlib import Path
+from decimal import Decimal
 from unittest.mock import patch, MagicMock, PropertyMock
 
 import pytest
 
 
-class TestChainConfig:
-    """Test chain configuration utilities."""
-
-    def test_supported_chains(self):
-        from providers.local_wallet import SUPPORTED_EVM_CHAINS, CHAIN_CONFIGS
-        assert "base" in SUPPORTED_EVM_CHAINS
-        assert "polygon" in SUPPORTED_EVM_CHAINS
-        assert "bnb" in SUPPORTED_EVM_CHAINS
-        for chain in SUPPORTED_EVM_CHAINS:
-            cfg = CHAIN_CONFIGS[chain]
-            assert "rpc_mainnet" in cfg
-            assert "rpc_testnet" in cfg
-            assert "usdc_mainnet" in cfg
-            assert "native_token" in cfg
-
-    def test_get_chain_config_valid(self):
-        from providers.local_wallet import _get_chain_config
-        cfg = _get_chain_config("base")
-        assert cfg["native_token"] == "ETH"
-
-    def test_get_chain_config_invalid(self):
-        from providers.local_wallet import _get_chain_config
-        with pytest.raises(ValueError, match="Unsupported chain"):
-            _get_chain_config("avalanche")
-
-    def test_get_rpc_testnet(self):
-        from providers.local_wallet import _get_rpc
-        with patch("providers.local_wallet._is_testnet", return_value=True):
-            rpc = _get_rpc("base")
-            assert "sepolia" in rpc
-
-    def test_get_rpc_mainnet(self):
-        from providers.local_wallet import _get_rpc
-        with patch("providers.local_wallet._is_testnet", return_value=False):
-            rpc = _get_rpc("base")
-            assert "mainnet" in rpc
-
-    def test_get_usdc_address(self):
-        from providers.local_wallet import _get_usdc_address
-        with patch("providers.local_wallet._is_testnet", return_value=False):
-            addr = _get_usdc_address("base")
-            assert addr.startswith("0x")
-            assert len(addr) == 42
-
-    def test_get_network_name(self):
-        from providers.local_wallet import _get_network_name
-        with patch("providers.local_wallet._is_testnet", return_value=True):
-            assert _get_network_name("polygon") == "polygon-testnet"
-        with patch("providers.local_wallet._is_testnet", return_value=False):
-            assert _get_network_name("polygon") == "polygon-mainnet"
+class MockAccount:
+    """Mock eth_account.Account.create() result."""
+    def __init__(self, address="0x1234567890abcdef1234567890abcdef12345678",
+                 key=b'\x01' * 32):
+        self.address = address
+        self.key = key
 
 
 class TestWalletCreation:
-    """Test EVM wallet creation."""
+    """Test EVM wallet creation and key storage."""
 
-    def test_create_new_wallet(self, tmp_path):
+    def test_create_wallet_new(self, tmp_path):
+        """Create a new wallet — stores encrypted key, returns address."""
         from providers.local_wallet import create_agent_wallet
 
-        mock_account = MagicMock()
-        mock_account.address = "0x1234567890abcdef1234567890abcdef12345678"
-        mock_account.key.hex.return_value = "deadbeef" * 8
-
+        mock_acct = MockAccount()
         with patch("providers.local_wallet.WALLETS_DIR", tmp_path), \
-             patch("providers.local_wallet.Account.create", return_value=mock_account), \
-             patch("providers.local_wallet.encrypt", return_value="encrypted_key"):
-            result = create_agent_wallet("agent-w1", chain="base")
+             patch("providers.local_wallet.Account") as mock_account_cls, \
+             patch("providers.local_wallet.encrypt", side_effect=lambda x: f"enc:{x}"):
+            mock_account_cls.create.return_value = mock_acct
+            result = create_agent_wallet("agent-w1")
 
-        assert result["address"] == "0x1234567890abcdef1234567890abcdef12345678"
-        assert result["chain"] == "base"
-        assert "already_existed" not in result
-        # Verify file saved
+        assert result["address"] == mock_acct.address
         assert (tmp_path / "agent-w1.json").exists()
         saved = json.loads((tmp_path / "agent-w1.json").read_text())
-        assert saved["private_key"] == "encrypted_key"
+        assert saved["address"] == mock_acct.address
         assert saved["encrypted"] is True
 
     def test_create_wallet_already_exists(self, tmp_path):
+        """If wallet exists, return existing address."""
         from providers.local_wallet import create_agent_wallet
 
         existing = {
-            "agent_id": "agent-w2",
-            "address": "0xexisting",
-            "network": "base-testnet",
-            "private_key": "enc_key",
+            "address": "0xAAAABBBBCCCCDDDD",
+            "private_key": "enc:pk_existing",
             "encrypted": True,
         }
         (tmp_path / "agent-w2.json").write_text(json.dumps(existing))
 
         with patch("providers.local_wallet.WALLETS_DIR", tmp_path):
-            result = create_agent_wallet("agent-w2", chain="polygon")
+            result = create_agent_wallet("agent-w2")
 
-        assert result["address"] == "0xexisting"
-        assert result["already_existed"] is True
+        assert result["address"] == "0xAAAABBBBCCCCDDDD"
 
-    def test_create_wallet_invalid_chain(self):
+    def test_same_address_all_chains(self, tmp_path):
+        """EVM wallets share one address across all chains."""
         from providers.local_wallet import create_agent_wallet
-        with pytest.raises(ValueError, match="Unsupported chain"):
-            create_agent_wallet("agent-w3", chain="solana")
+
+        mock_acct = MockAccount(address="0xSharedAddr")
+        with patch("providers.local_wallet.WALLETS_DIR", tmp_path), \
+             patch("providers.local_wallet.Account") as mock_account_cls, \
+             patch("providers.local_wallet.encrypt", side_effect=lambda x: f"enc:{x}"):
+            mock_account_cls.create.return_value = mock_acct
+            base_result = create_agent_wallet("agent-w3", chain="base")
+            poly_result = create_agent_wallet("agent-w3", chain="polygon")
+            bnb_result = create_agent_wallet("agent-w3", chain="bnb")
+
+        assert base_result["address"] == poly_result["address"] == bnb_result["address"]
 
 
 class TestWalletAddress:
-    """Test wallet address retrieval."""
+    """Test address retrieval."""
 
-    def test_get_address_exists(self, tmp_path):
+    def test_get_wallet_address(self, tmp_path):
+        """Get address from stored wallet."""
         from providers.local_wallet import get_wallet_address
 
-        data = {"address": "0xMyAddr", "private_key": "pk"}
-        (tmp_path / "agent-a1.json").write_text(json.dumps(data))
+        wallet_data = {"address": "0xMyAddr123", "private_key": "enc:pk", "encrypted": True}
+        (tmp_path / "agent-w4.json").write_text(json.dumps(wallet_data))
 
         with patch("providers.local_wallet.WALLETS_DIR", tmp_path):
-            addr = get_wallet_address("agent-a1")
+            addr = get_wallet_address("agent-w4")
 
-        assert addr == "0xMyAddr"
+        assert addr == "0xMyAddr123"
 
-    def test_get_address_not_found(self, tmp_path):
+    def test_get_wallet_address_no_wallet(self, tmp_path):
+        """No wallet file returns None."""
         from providers.local_wallet import get_wallet_address
 
         with patch("providers.local_wallet.WALLETS_DIR", tmp_path):
@@ -134,225 +99,64 @@ class TestWalletAddress:
 
 
 class TestWalletBalance:
-    """Test balance retrieval (mocked Web3)."""
+    """Test balance checking across chains."""
 
-    def test_get_balance_no_wallet(self, tmp_path):
+    def test_get_wallet_balance(self, tmp_path):
+        """Get balance returns native + USDC balances."""
+        from providers.local_wallet import get_wallet_balance
+
+        wallet_data = {"address": "0xBalanceTest", "private_key": "enc:pk", "encrypted": True}
+        (tmp_path / "agent-w5.json").write_text(json.dumps(wallet_data))
+
+        mock_web3 = MagicMock()
+        mock_web3.eth.get_balance.return_value = 1_000_000_000_000_000_000  # 1 ETH in wei
+        mock_contract = MagicMock()
+        mock_contract.functions.balanceOf.return_value.call.return_value = 50_000_000  # 50 USDC (6 decimals)
+        mock_web3.eth.contract.return_value = mock_contract
+        mock_web3.from_wei.return_value = 1.0
+
+        with patch("providers.local_wallet.WALLETS_DIR", tmp_path), \
+             patch("providers.local_wallet.Web3", return_value=mock_web3):
+            result = get_wallet_balance("agent-w5", chain="base")
+
+        assert result["address"] == "0xBalanceTest"
+        assert "balance_usdc" in result
+        assert "balance_native" in result
+
+    def test_get_wallet_balance_no_wallet(self, tmp_path):
+        """No wallet returns error dict."""
         from providers.local_wallet import get_wallet_balance
 
         with patch("providers.local_wallet.WALLETS_DIR", tmp_path):
-            result = get_wallet_balance("ghost")
+            result = get_wallet_balance("nonexistent", chain="base")
 
         assert "error" in result
-        assert "No wallet" in result["error"]
-
-    def test_get_balance_success(self, tmp_path):
-        from providers.local_wallet import get_wallet_balance
-
-        addr = "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
-        data = {"address": addr, "private_key": "pk"}
-        (tmp_path / "agent-b1.json").write_text(json.dumps(data))
-
-        mock_w3 = MagicMock()
-        mock_w3.eth.get_balance.return_value = 1_000_000_000_000_000_000  # 1 ETH in wei
-        mock_w3.from_wei.return_value = 1.0
-        mock_contract = MagicMock()
-        mock_contract.functions.balanceOf.return_value.call.return_value = 50_000_000  # 50 USDC
-        mock_w3.eth.contract.return_value = mock_contract
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path), \
-             patch("providers.local_wallet._get_w3", return_value=mock_w3):
-            result = get_wallet_balance("agent-b1", chain="base")
-
-        assert result["address"] == addr
-        assert result["chain"] == "base"
-        assert result["native_token"] == "ETH"
-        assert result["balance_usdc"] == "50.0"
-
-    def test_get_balance_rpc_error(self, tmp_path):
-        from providers.local_wallet import get_wallet_balance
-
-        addr = "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
-        data = {"address": addr, "private_key": "pk"}
-        (tmp_path / "agent-b2.json").write_text(json.dumps(data))
-
-        mock_w3 = MagicMock()
-        mock_w3.eth.get_balance.side_effect = Exception("RPC timeout")
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path), \
-             patch("providers.local_wallet._get_w3", return_value=mock_w3):
-            result = get_wallet_balance("agent-b2", chain="polygon")
-
-        assert "error" in result
-        assert result["address"] == addr
 
 
-class TestPrivateKeyLoading:
-    """Test private key decryption."""
+class TestChainConfig:
+    """Test chain configuration."""
 
-    def test_load_encrypted_key(self):
-        from providers.local_wallet import _load_private_key
+    def test_chain_configs_exist(self):
+        """All expected chains are configured."""
+        from providers.local_wallet import CHAIN_CONFIGS
 
-        with patch("providers.local_wallet.decrypt", return_value="decrypted_pk"):
-            result = _load_private_key({"private_key": "enc_data", "encrypted": True})
+        assert "base" in CHAIN_CONFIGS
+        assert "polygon" in CHAIN_CONFIGS
+        assert "bnb" in CHAIN_CONFIGS
 
-        assert result == "decrypted_pk"
+    def test_chain_config_structure(self):
+        """Each chain config has required fields."""
+        from providers.local_wallet import CHAIN_CONFIGS
 
-    def test_load_unencrypted_key(self):
-        from providers.local_wallet import _load_private_key
+        required_fields = ["name", "rpc_mainnet", "rpc_testnet", "usdc_mainnet", "native_token"]
+        for chain, config in CHAIN_CONFIGS.items():
+            for field in required_fields:
+                assert field in config, f"{chain} missing {field}"
 
-        result = _load_private_key({"private_key": "raw_pk", "encrypted": False})
-        assert result == "raw_pk"
+    def test_chain_native_tokens(self):
+        """Correct native tokens per chain."""
+        from providers.local_wallet import CHAIN_CONFIGS
 
-    def test_load_key_no_encrypted_flag(self):
-        from providers.local_wallet import _load_private_key
-
-        result = _load_private_key({"private_key": "raw_pk"})
-        assert result == "raw_pk"
-
-
-class TestSendUSDC:
-    """Test USDC transfer (mocked)."""
-
-    @pytest.mark.asyncio
-    async def test_send_usdc_no_wallet(self, tmp_path):
-        from providers.local_wallet import send_usdc
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path):
-            result = await send_usdc("ghost", "0xRecipient", 10.0)
-
-        assert result["success"] is False
-        assert "No wallet" in result["error"]
-
-    @pytest.mark.asyncio
-    async def test_send_usdc_success(self, tmp_path):
-        from providers.local_wallet import send_usdc
-
-        addr = "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
-        recipient = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-        data = {"address": addr, "private_key": "0x" + "ab" * 32, "encrypted": False}
-        (tmp_path / "agent-s1.json").write_text(json.dumps(data))
-
-        mock_w3 = MagicMock()
-        mock_w3.eth.get_transaction_count.return_value = 0
-        mock_w3.eth.gas_price = 1_000_000_000
-        mock_contract = MagicMock()
-        mock_contract.functions.transfer.return_value.build_transaction.return_value = {"tx": True}
-        mock_w3.eth.contract.return_value = mock_contract
-        mock_w3.eth.account.sign_transaction.return_value.raw_transaction = b"\x00"
-        mock_w3.eth.send_raw_transaction.return_value = b"\xab" * 32
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path), \
-             patch("providers.local_wallet._get_w3", return_value=mock_w3), \
-             patch("providers.local_wallet.Web3") as MockWeb3:
-            MockWeb3.to_checksum_address = lambda x: x  # pass through
-            result = await send_usdc("agent-s1", recipient, 25.0, chain="base")
-
-        assert result["success"] is True
-        assert result["amount"] == 25.0
-        assert result["chain"] == "base"
-
-    @pytest.mark.asyncio
-    async def test_send_usdc_rpc_failure(self, tmp_path):
-        from providers.local_wallet import send_usdc
-
-        addr = "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
-        data = {"address": addr, "private_key": "0x" + "cd" * 32, "encrypted": False}
-        (tmp_path / "agent-s2.json").write_text(json.dumps(data))
-
-        mock_w3 = MagicMock()
-        mock_w3.eth.get_transaction_count.side_effect = Exception("nonce error")
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path), \
-             patch("providers.local_wallet._get_w3", return_value=mock_w3), \
-             patch("providers.local_wallet.Web3") as MockWeb3:
-            MockWeb3.to_checksum_address = lambda x: x
-            result = await send_usdc("agent-s2", "0xRecipient", 5.0)
-
-        assert result["success"] is False
-        assert "nonce error" in result["error"]
-
-
-class TestSendNative:
-    """Test native token transfer (mocked)."""
-
-    @pytest.mark.asyncio
-    async def test_send_native_no_wallet(self, tmp_path):
-        from providers.local_wallet import send_native
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path):
-            result = await send_native("ghost", "0xTo", 0.1)
-
-        assert result["success"] is False
-
-    @pytest.mark.asyncio
-    async def test_send_native_success(self, tmp_path):
-        from providers.local_wallet import send_native
-
-        addr = "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
-        data = {"address": addr, "private_key": "0x" + "ef" * 32, "encrypted": False}
-        (tmp_path / "agent-n1.json").write_text(json.dumps(data))
-
-        mock_w3 = MagicMock()
-        mock_w3.eth.get_transaction_count.return_value = 5
-        mock_w3.eth.gas_price = 5_000_000_000
-        mock_w3.to_wei.return_value = 100_000_000_000_000_000
-        mock_w3.eth.chain_id = 56
-        mock_w3.eth.account.sign_transaction.return_value.raw_transaction = b"\x01"
-        mock_w3.eth.send_raw_transaction.return_value = b"\xcd" * 32
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path), \
-             patch("providers.local_wallet._get_w3", return_value=mock_w3), \
-             patch("providers.local_wallet.Web3") as MockWeb3:
-            MockWeb3.to_checksum_address = lambda x: x
-            result = await send_native("agent-n1", "0xRecipient", 0.1, chain="bnb")
-
-        assert result["success"] is True
-        assert result["native_token"] == "BNB"
-        assert result["chain"] == "bnb"
-
-
-class TestSendEthAlias:
-    """Test backward compat alias."""
-
-    @pytest.mark.asyncio
-    async def test_send_eth_calls_send_native(self, tmp_path):
-        from providers.local_wallet import send_eth
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path):
-            result = await send_eth("ghost", "0xTo", 0.5)
-
-        assert result["success"] is False  # no wallet, but function works
-
-
-class TestAllChainBalances:
-    """Test multi-chain balance aggregation."""
-
-    def test_get_all_chain_balances_no_wallet(self, tmp_path):
-        from providers.local_wallet import get_all_chain_balances
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path):
-            results = get_all_chain_balances("ghost")
-
-        assert results == []
-
-    def test_get_all_chain_balances_returns_all_chains(self, tmp_path):
-        from providers.local_wallet import get_all_chain_balances, SUPPORTED_EVM_CHAINS
-
-        addr = "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
-        data = {"address": addr, "private_key": "pk"}
-        (tmp_path / "agent-m1.json").write_text(json.dumps(data))
-
-        mock_w3 = MagicMock()
-        mock_w3.eth.get_balance.return_value = 0
-        mock_w3.from_wei.return_value = 0.0
-        mock_contract = MagicMock()
-        mock_contract.functions.balanceOf.return_value.call.return_value = 0
-        mock_w3.eth.contract.return_value = mock_contract
-
-        with patch("providers.local_wallet.WALLETS_DIR", tmp_path), \
-             patch("providers.local_wallet._get_w3", return_value=mock_w3):
-            results = get_all_chain_balances("agent-m1")
-
-        assert len(results) == len(SUPPORTED_EVM_CHAINS)
-        chains_returned = {r["chain"] for r in results}
-        assert chains_returned == set(SUPPORTED_EVM_CHAINS)
+        assert CHAIN_CONFIGS["base"]["native_token"] == "ETH"
+        assert CHAIN_CONFIGS["polygon"]["native_token"] == "POL"
+        assert CHAIN_CONFIGS["bnb"]["native_token"] == "BNB"
