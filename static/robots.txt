@@ -6,3 +6,12 @@ Disallow: /v1/
 Disallow: /app/
 
 Sitemap: https://leofundmybot.dev/sitemap.xml
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
