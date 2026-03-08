@@ -145,6 +145,10 @@ async def robots_txt():
 async def favicon():
     return FileResponse(os.path.join(_static_dir, "favicon.svg"), media_type="image/svg+xml")
 
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml():
+    return FileResponse(os.path.join(_static_dir, "sitemap.xml"), media_type="application/xml")
+
 app.mount("/app", StaticFiles(directory=os.path.join(_project_dir, "miniapp"), html=True), name="miniapp")
 app.mount("/docs-site", StaticFiles(directory=os.path.join(_project_dir, "landing", "docs"), html=True), name="docs-site")
 app.mount("/landing", StaticFiles(directory=os.path.join(_project_dir, "landing"), html=True), name="landing")
