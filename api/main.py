@@ -8,6 +8,7 @@ import logging
 
 from fastapi import FastAPI, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from starlette.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
@@ -131,6 +132,13 @@ app.include_router(miniapp_router)
 # ═══════════════════════════════════════
 # STATIC FILE SERVING
 # ═══════════════════════════════════════
+
+_static_dir = os.path.join(_project_dir, "static")
+os.makedirs(_static_dir, exist_ok=True)
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    return FileResponse(os.path.join(_static_dir, "robots.txt"), media_type="text/plain")
 
 app.mount("/app", StaticFiles(directory=os.path.join(_project_dir, "miniapp"), html=True), name="miniapp")
 app.mount("/docs-site", StaticFiles(directory=os.path.join(_project_dir, "landing", "docs"), html=True), name="docs-site")

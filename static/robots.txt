@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /docs
+Allow: /docs-site/
+Disallow: /v1/
+Disallow: /app/
+
+Sitemap: https://leofundmybot.dev/sitemap.xml
