@@ -1,0 +1,36 @@
+{
+  "name": "agentpay",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for AgentPay — payment infrastructure for AI agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": ["ai", "agents", "payments", "crypto", "usdc", "x402", "telegram"],
+  "author": "AgentPay <hello@leofundmybot.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lfp22092002-ops/agentpay"
+  },
+  "homepage": "https://leofundmybot.dev",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}
