@@ -89,6 +89,7 @@ async def pay_x402_resource(
             # Pick the first requirement
             req = payment_requirements[0]
             max_amount = int(req.get("maxAmountRequired", 0))
+            pay_to = req.get("payTo", "")
 
             # Safety check — convert atomic USDC (6 decimals) to USD
             price_usd = max_amount / 1_000_000
