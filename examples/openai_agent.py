@@ -35,7 +35,7 @@ async def ai_agent_task(task: str):
         # Estimate cost and pre-authorize the spend
         estimated_cost = 0.05  # Conservative estimate for a typical call
         try:
-            tx = await pay.spend(
+            await pay.spend(
                 amount=estimated_cost,
                 description=f"OpenAI GPT-4o-mini: {task[:50]}",
                 idempotency_key=f"task-{hash(task) % 10000}",
