@@ -282,6 +282,7 @@
         <a href="#approval-workflow">Approval Workflow</a>
         <a href="#error-codes">Error Codes</a>
         <a href="#python-sdk">Python SDK</a>
+        <a href="#typescript-sdk">TypeScript SDK</a>
       </div>
     </aside>
 
@@ -298,7 +299,7 @@
       <p>Open <a href="https://t.me/FundmyAIbot" target="_blank" rel="noopener">@FundmyAIbot</a> on Telegram and send <code>/start</code>. Follow the prompts to create a new agent.</p>
 
       <h3>2. Get your API key</h3>
-      <p>After creating an agent, the bot will generate an API key starting with <code>ak_live_</code>. Store this securely — it&rsquo;s shown only once.</p>
+      <p>After creating an agent, the bot will generate an API key starting with <code>ap_live_</code>. Store this securely — it&rsquo;s shown only once.</p>
 
       <h3>3. Fund your agent</h3>
       <p>Use the Telegram bot to top up your agent&rsquo;s balance with Telegram Stars. The funds are instantly available.</p>
@@ -309,9 +310,9 @@
           <span>Shell</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-bash">curl -X POST https://api.agentpay.dev/v1/spend \
+        <pre><code class="language-bash">curl -X POST https://leofundmybot.dev/v1/spend \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: ak_live_your_api_key" \
+  -H "X-API-Key: ap_live_your_api_key" \
   -d '{
     "amount": 1.00,
     "description": "Test payment"
@@ -328,7 +329,7 @@
           <span>HTTP Header</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-http">X-API-Key: ak_live_your_api_key</code></pre>
+        <pre><code class="language-http">X-API-Key: ap_live_your_api_key</code></pre>
       </div>
 
       <div class="callout callout-warn">
@@ -340,14 +341,14 @@
       <table class="docs-table">
         <thead><tr><th>Prefix</th><th>Environment</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td>ak_live_</td><td>Production</td><td>Real transactions, real money</td></tr>
+          <tr><td>ap_live_</td><td>Production</td><td>Real transactions, real money</td></tr>
           <tr><td>ak_test_</td><td>Sandbox</td><td>Test transactions, no real charges</td></tr>
         </tbody>
       </table>
 
       <!-- Endpoints -->
       <h2 id="endpoints">Endpoints Reference</h2>
-      <p>Base URL: <code>https://api.agentpay.dev</code></p>
+      <p>Base URL: <code>https://leofundmybot.dev</code></p>
       <p>All request and response bodies are JSON. All amounts are in USD.</p>
 
       <!-- POST /v1/spend -->
@@ -371,9 +372,9 @@
           <span>Request</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-bash">curl -X POST https://api.agentpay.dev/v1/spend \
+        <pre><code class="language-bash">curl -X POST https://leofundmybot.dev/v1/spend \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: ak_live_your_api_key" \
+  -H "X-API-Key: ap_live_your_api_key" \
   -d '{
     "amount": 5.00,
     "description": "OpenAI GPT-4 API call",
@@ -650,7 +651,7 @@ def verify_webhook(payload: bytes, signature: str, secret: str) -> bool:
         <pre><code class="language-python">import time
 import agentpay
 
-client = agentpay.Client(api_key="ak_live_...")
+client = agentpay.Client(api_key="ap_live_...")
 
 # Create a spend that may need approval
 txn = client.spend(amount=100.00, description="Cloud server monthly")
@@ -700,14 +701,9 @@ else:
 
       <!-- Python SDK -->
       <h2 id="python-sdk">Python SDK</h2>
-      <p>A Python SDK for AgentPay is coming soon. Here&rsquo;s what the API will look like:</p>
+      <p>The official Python SDK provides sync and async clients for the AgentPay API.</p>
 
-      <div class="callout callout-info">
-        <span class="callout-icon">📦</span>
-        <div>The Python SDK is not yet published. The examples below show the planned API surface.</div>
-      </div>
-
-      <h3>Installation (coming soon)</h3>
+      <h3>Installation</h3>
       <div class="code-wrapper">
         <div class="code-label">
           <span>Shell</span>
@@ -722,9 +718,13 @@ else:
           <span>Python</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-python">import agentpay
+        <pre><code class="language-python">from agentpay import AgentPayClient
 
-client = agentpay.Client(api_key="ak_live_your_api_key")</code></pre>
+client = AgentPayClient(api_key="ap_live_your_api_key")
+
+# Or async:
+from agentpay import AsyncAgentPayClient
+client = AsyncAgentPayClient(api_key="ap_live_your_api_key")</code></pre>
       </div>
 
       <h3>Make a payment</h3>
@@ -733,15 +733,14 @@ client = agentpay.Client(api_key="ak_live_your_api_key")</code></pre>
           <span>Python</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-python">txn = client.spend(
+        <pre><code class="language-python">result = client.spend(
     amount=5.00,
     description="OpenAI GPT-4 API call",
     idempotency_key="req_abc123"
 )
 
-print(f"Transaction: {txn.id}")
-print(f"Status: {txn.status}")
-print(f"Remaining: ${txn.balance_remaining}")</code></pre>
+print(f"Transaction: {result['transaction_id']}")
+print(f"Balance: ${result['balance_after']}")</code></pre>
       </div>
 
       <h3>Check balance</h3>
@@ -750,9 +749,9 @@ print(f"Remaining: ${txn.balance_remaining}")</code></pre>
           <span>Python</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-python">balance = client.balance()
-print(f"Available: ${balance.available}")
-print(f"Pending: ${balance.pending}")</code></pre>
+        <pre><code class="language-python">balance = client.get_balance()
+print(f"Available: ${balance['balance_usd']}")
+print(f"Daily spent: ${balance['daily_spent_usd']}")</code></pre>
       </div>
 
       <h3>List transactions</h3>
@@ -761,23 +760,23 @@ print(f"Pending: ${balance.pending}")</code></pre>
           <span>Python</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-python">transactions = client.transactions(limit=10, status="completed")
-for t in transactions:
-    print(f"{t.created_at}: ${t.amount} — {t.description}")</code></pre>
+        <pre><code class="language-python">txns = client.get_transactions(limit=10)
+for t in txns:
+    print(f"{t['created_at']}: ${t['amount_usd']} — {t['description']}")</code></pre>
       </div>
 
-      <h3>Send USDC</h3>
+      <h3>Send USDC on-chain</h3>
       <div class="code-wrapper">
         <div class="code-label">
           <span>Python</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-python">send = client.send_usdc(
+        <pre><code class="language-python">result = client.send_usdc(
     to_address="0x5678...efgh",
     amount=50.00,
     chain="base"
 )
-print(f"TX Hash: {send.tx_hash}")</code></pre>
+print(f"TX Hash: {result['tx_hash']}")</code></pre>
       </div>
 
       <h3>Set up webhooks</h3>
@@ -786,20 +785,51 @@ print(f"TX Hash: {send.tx_hash}")</code></pre>
           <span>Python</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-python">webhook = client.create_webhook(
-    url="https://your-server.com/webhooks/agentpay",
-    events=["transaction.completed", "approval.required"]
-)
-print(f"Webhook secret: {webhook.secret}")
+        <pre><code class="language-python">client.set_webhook(url="https://your-server.com/webhooks/agentpay")
 
-# Verify incoming webhook
-from agentpay.webhooks import verify_signature
-
-is_valid = verify_signature(
+# Verify incoming webhooks
+from agentpay import AgentPayClient
+is_valid = AgentPayClient.verify_webhook(
     payload=request.body,
     signature=request.headers["X-AgentPay-Signature"],
-    secret=webhook.secret
+    secret="your_webhook_secret"
 )</code></pre>
+      </div>
+
+      <!-- TypeScript SDK -->
+      <h2 id="typescript-sdk">TypeScript SDK</h2>
+      <p>Use AgentPay from Node.js or any TypeScript/JavaScript runtime.</p>
+
+      <h3>Installation</h3>
+      <div class="code-wrapper">
+        <div class="code-label">
+          <span>Shell</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+        </div>
+        <pre><code class="language-bash">npm install agentpay</code></pre>
+      </div>
+
+      <h3>Usage</h3>
+      <div class="code-wrapper">
+        <div class="code-label">
+          <span>TypeScript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+        </div>
+        <pre><code class="language-typescript">import { AgentPayClient } from 'agentpay';
+
+const client = new AgentPayClient({ apiKey: 'ap_live_your_api_key' });
+
+// Spend
+const tx = await client.spend(5.00, 'GPT-4 API call');
+console.log(`Balance: $${tx.balance_after}`);
+
+// Check balance
+const balance = await client.getBalance();
+console.log(`Available: $${balance.balance_usd}`);
+
+// Send USDC
+const send = await client.sendUsdc('0x5678...', 50.0, 'base');
+console.log(`TX: ${send.tx_hash}`);</code></pre>
       </div>
 
     </main>

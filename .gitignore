@@ -10,3 +10,4 @@ venv/
 wallets/
 sdk/dist/
 *.bak.*
+.coverage
