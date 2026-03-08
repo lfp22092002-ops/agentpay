@@ -9,11 +9,7 @@ Uses the official x402 Python SDK from Coinbase.
 """
 import json
 import logging
-import os
-from decimal import Decimal
 
-from eth_account import Account
-from web3 import Web3
 
 from config.settings import ENVIRONMENT
 
@@ -54,7 +50,6 @@ async def pay_x402_resource(
     """
     import httpx
     from providers.local_wallet import WALLETS_DIR
-    from pathlib import Path
     from core.encryption import decrypt
 
     # Load agent wallet
@@ -67,7 +62,6 @@ async def pay_x402_resource(
     if wallet_data.get("encrypted", False):
         private_key = decrypt(private_key)
 
-    address = wallet_data["address"]
 
     async with httpx.AsyncClient(timeout=30) as client:
         # Step 1: Initial request
@@ -95,10 +89,6 @@ async def pay_x402_resource(
             # Pick the first requirement
             req = payment_requirements[0]
             max_amount = int(req.get("maxAmountRequired", 0))
-            asset = req.get("asset", "")
-            pay_to = req.get("payTo", "")
-            network = req.get("network", "base-sepolia")
-            scheme = req.get("scheme", "exact")
 
             # Safety check — convert atomic USDC (6 decimals) to USD
             price_usd = max_amount / 1_000_000

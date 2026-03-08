@@ -3,12 +3,12 @@ Tests for the AgentPay Python SDK (sync + async clients).
 
 Uses httpx mock transport — no network calls needed.
 """
-import json
 import pytest
 import httpx
 
 # Add SDK directory so we import the *SDK* agentpay package, not the project root
-import sys, os
+import sys
+import os
 SDK_DIR = os.path.join(os.path.dirname(__file__), "..", "sdk")
 sys.path.insert(0, SDK_DIR)
 
@@ -33,7 +33,6 @@ from agentpay import (
     RateLimitError,
     __version__,
 )
-from agentpay.models import Balance, SpendResponse, Transaction, Wallet, Webhook, X402Response
 
 
 # ---------------------------------------------------------------------------

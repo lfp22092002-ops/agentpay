@@ -12,21 +12,20 @@ from models.database import async_session, init_db
 from models.schema import PaymentMethod, Agent
 from core.wallet import (
     get_or_create_user, create_agent, get_user_agents,
-    deposit, spend, get_agent_transactions, get_daily_spent,
-    execute_approved_spend, refund, transfer_between_agents,
+    deposit, get_agent_transactions, execute_approved_spend, refund, transfer_between_agents,
     rotate_api_key
 )
 from core.webhooks import set_bot as set_webhook_bot
 from core.approvals import resolve_approval, get_pending as get_pending_approval
 from providers.telegram_stars import stars_to_usd
-from providers.local_wallet import create_agent_wallet, get_wallet_address, get_wallet_balance, CHAIN_CONFIGS, SUPPORTED_EVM_CHAINS
+from providers.local_wallet import create_agent_wallet, get_wallet_address, get_wallet_balance
 from providers.solana_wallet import create_solana_wallet, get_solana_wallet_address, get_solana_balance
 from providers.lithic_card import (
-    create_virtual_card, get_card_details, update_card_state, update_spend_limit
+    create_virtual_card, get_card_details, update_card_state
 )
 from config.settings import BOT_TOKEN
 from decimal import Decimal
-from sqlalchemy import select, delete as sql_delete
+from sqlalchemy import select
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("agentpay")
@@ -538,7 +537,7 @@ async def successful_payment(message: Message):
         agent = result.scalar_one_or_none()
 
         if agent:
-            tx = await deposit(
+            await deposit(
                 db, agent, usd,
                 PaymentMethod.TELEGRAM_STARS,
                 external_ref=message.successful_payment.telegram_payment_charge_id,
@@ -1057,10 +1056,10 @@ async def callback_create_card(callback: CallbackQuery):
             f"Limit: ${limit_usd:.0f}/mo\n\n"
             f"Use /card to manage."
         )
-    except ValueError as e:
+    except ValueError:
         await callback.message.edit_text(
-            f"⚠️ Lithic API key needed\n\n"
-            f"Get one at: https://app.lithic.com/signup"
+            "⚠️ Lithic API key needed\n\n"
+            "Get one at: https://app.lithic.com/signup"
         )
     except Exception as e:
         logger.error(f"Card creation failed: {e}", exc_info=True)
@@ -1402,7 +1401,8 @@ async def cmd_export(message: Message):
         await message.answer("No agents.")
         return
 
-    import csv, io
+    import csv
+    import io
 
     output = io.StringIO()
     writer = csv.writer(output)

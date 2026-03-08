@@ -1,10 +1,7 @@
 """
 Tests for the approval workflow system.
 """
-import asyncio
-import time
 from decimal import Decimal
-from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -16,7 +13,6 @@ from core.approvals import (
     get_user_pending,
     create_approval_id,
     _pending,
-    APPROVAL_TIMEOUT_SECONDS,
 )
 
 

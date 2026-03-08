@@ -12,11 +12,9 @@ import logging
 import time
 from datetime import datetime, timezone
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 import httpx
 
-from config.settings import API_SECRET
 
 logger = logging.getLogger("agentpay.webhooks")
 
@@ -205,7 +203,7 @@ async def notify_approval_request(agent_name: str, telegram_id: int, amount: flo
     )
     if description:
         text += f"For: {description}\n"
-    text += f"\nThis exceeds the auto-approve threshold."
+    text += "\nThis exceeds the auto-approve threshold."
 
     buttons = InlineKeyboardMarkup(inline_keyboard=[
         [

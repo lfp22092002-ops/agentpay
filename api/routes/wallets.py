@@ -5,7 +5,6 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies import get_agent_auth
 from api.middleware import limiter
@@ -22,11 +21,10 @@ from api.models import (
     X402PayRequest, X402PayResponse, X402ProbeResponse,
 )
 from core.wallet import spend, refund, transfer_between_agents
-from models.database import get_db
-from models.schema import Agent, Wallet
+from models.schema import Wallet
 from providers.local_wallet import (
-    get_wallet_address, get_wallet_balance, send_usdc, send_eth, send_native,
-    CHAIN_CONFIGS, SUPPORTED_EVM_CHAINS, get_all_chain_balances,
+    get_wallet_address, get_wallet_balance, send_usdc, send_native,
+    CHAIN_CONFIGS, SUPPORTED_EVM_CHAINS,
 )
 from providers.solana_wallet import (
     create_solana_wallet, get_solana_wallet_address, get_solana_balance,

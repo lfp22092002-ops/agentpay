@@ -7,10 +7,8 @@ import pytest
 import pytest_asyncio
 import os
 import sys
-import json
 from decimal import Decimal
-from unittest.mock import patch, AsyncMock, MagicMock
-from datetime import datetime
+from unittest.mock import patch, AsyncMock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -23,7 +21,7 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from models.database import Base
-from models.schema import User, Agent, Transaction, TransactionType, TransactionStatus, AgentIdentity
+from models.schema import User, Agent
 from core.wallet import hash_api_key
 
 

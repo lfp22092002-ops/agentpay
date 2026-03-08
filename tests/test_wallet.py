@@ -2,12 +2,11 @@
 Tests for core wallet operations: create, balance, spend, refund, transfer.
 """
 import pytest
-import pytest_asyncio
 from decimal import Decimal
 from unittest.mock import patch, AsyncMock
 
 from models.schema import (
-    Agent, User, Transaction, TransactionType, TransactionStatus, PaymentMethod,
+    TransactionType, TransactionStatus, PaymentMethod,
 )
 from core.wallet import (
     hash_api_key, generate_api_key, get_agent_by_api_key,

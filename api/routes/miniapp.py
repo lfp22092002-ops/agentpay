@@ -13,19 +13,16 @@ from urllib.parse import parse_qs
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from sqlalchemy import select, func, cast, Date
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.responses import JSONResponse
 
 from api.middleware import limiter
 from api.models import (
     TelegramAuthRequest, TelegramAuthResponse,
     AgentSettingsUpdate,
-    AgentIdentityOut, TrustScoreBreakdown,
-    DashboardResponse, AgentAnalyticsResponse,
+    AgentIdentityOut, DashboardResponse, AgentAnalyticsResponse,
 )
 from models.database import get_db
 from models.schema import (
-    Agent, User, Transaction, TransactionType, TransactionStatus,
-    AgentIdentity, PlatformRevenue,
+    Agent, User, Transaction, TransactionType, AgentIdentity, PlatformRevenue,
 )
 from core.wallet import get_daily_spent
 from providers.local_wallet import (

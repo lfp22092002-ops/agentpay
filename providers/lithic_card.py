@@ -36,12 +36,12 @@ def _get_client() -> Lithic:
 def create_virtual_card(agent_id: str, spend_limit: int = 5000, memo: str = "") -> dict:
     """
     Create a virtual card for an agent.
-    
+
     Args:
         agent_id: The agent's ID
         spend_limit: Monthly spend limit in cents (default $50)
         memo: Optional label for the card
-    
+
     Returns:
         Card details including last4, expiry, and token
     """
@@ -196,7 +196,7 @@ def update_spend_limit(agent_id: str, limit_cents: int) -> dict:
 
     try:
         client = _get_client()
-        card = client.cards.update(
+        client.cards.update(
             card_token,
             spend_limit=limit_cents,
             spend_limit_duration="MONTHLY",

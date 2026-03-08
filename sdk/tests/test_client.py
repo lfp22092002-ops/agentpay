@@ -1,7 +1,6 @@
 """Tests for AgentPay Python SDK — sync client."""
 
 import json
-from decimal import Decimal
 from unittest.mock import patch, MagicMock
 
 import httpx

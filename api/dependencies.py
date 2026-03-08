@@ -1,8 +1,6 @@
 """
 Shared dependencies for the AgentPay API.
 """
-import hashlib
-import time
 import logging
 
 from fastapi import Depends, Header, HTTPException

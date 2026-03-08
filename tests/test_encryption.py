@@ -2,7 +2,6 @@
 Tests for core/encryption.py — Fernet encryption/decryption with PBKDF2 key derivation.
 """
 import os
-import tempfile
 from unittest.mock import patch
 
 import pytest
@@ -106,7 +105,6 @@ class TestEncryptDecrypt:
     def test_decrypt_wrong_ciphertext_raises(self):
         """Decrypting garbage raises an error."""
         from core.encryption import decrypt
-        from cryptography.fernet import InvalidToken
         with pytest.raises(Exception):  # InvalidToken or base64 error
             decrypt("not-valid-ciphertext-at-all")
 

@@ -7,8 +7,6 @@ import asyncio
 import os
 import sys
 from decimal import Decimal
-from datetime import datetime
-from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
@@ -30,7 +28,6 @@ _test_session_factory = async_sessionmaker(_test_engine, class_=AsyncSession, ex
 
 # Monkey-patch the module-level create_async_engine call
 # We do this by pre-creating the module with our engine
-import importlib
 import types
 
 # First, make sure config.settings is loadable (it reads env vars, which we set above)
@@ -73,11 +70,9 @@ sys.modules["models.database"] = db_mod
 
 # NOW import the schema and wallet modules (they import from models.database)
 from models.schema import (
-    User, Agent, Wallet, Transaction,
-    TransactionType, TransactionStatus, PaymentMethod,
-    AgentIdentity, PlatformRevenue,
+    User, Agent, Wallet,
 )
-from core.wallet import hash_api_key, generate_api_key
+from core.wallet import hash_api_key
 
 
 @pytest.fixture(scope="session")

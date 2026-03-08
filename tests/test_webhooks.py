@@ -3,21 +3,17 @@ Tests for the webhook system — signing, event building, delivery.
 """
 import hashlib
 import hmac
-import json
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from unittest.mock import AsyncMock, patch, MagicMock
 
 import pytest
-import pytest_asyncio
 
 from core.webhooks import (
     sign_payload,
     build_event,
     generate_webhook_secret,
     deliver_webhook,
-    register_webhook,
-    unregister_webhook,
     get_webhook_config,
     _webhook_registry,
     notify_spend,
@@ -74,7 +70,6 @@ class TestBuildEvent:
     def test_different_events_different_ids(self):
         e1 = build_event("spend", "a1", {})
         # Slight time difference → different id
-        import time
         time.sleep(0.01)
         e2 = build_event("spend", "a1", {})
         # IDs may collide within same millisecond but generally differ

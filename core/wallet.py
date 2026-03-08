@@ -2,7 +2,7 @@ import hashlib
 import secrets
 import asyncio
 from decimal import Decimal
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.schema import User, Agent, Wallet, Transaction, TransactionType, TransactionStatus, PaymentMethod, PlatformRevenue
@@ -64,7 +64,7 @@ async def get_user_agents(db: AsyncSession, user: User) -> list[Agent]:
 
 async def get_agent_by_api_key(db: AsyncSession, api_key: str) -> Agent | None:
     key_hash = hash_api_key(api_key)
-    result = await db.execute(select(Agent).where(Agent.api_key_hash == key_hash, Agent.is_active == True))
+    result = await db.execute(select(Agent).where(Agent.api_key_hash == key_hash, Agent.is_active.is_(True)))
     return result.scalar_one_or_none()
 
 
@@ -153,7 +153,7 @@ async def spend(
 ) -> tuple[Transaction | None, str | None]:
     """
     Execute a spend. If amount > auto_approve_usd, requires human approval via Telegram.
-    
+
     Returns (transaction, error_string).
     If approval needed, returns (None, "approval_pending:{approval_id}").
     """

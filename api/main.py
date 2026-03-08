@@ -5,55 +5,20 @@ This is the main entry point. All endpoint logic lives in api/routes/.
 """
 import os
 import logging
-import collections
-import hashlib
-import time
-import time as _time
-import threading
-from datetime import datetime, timedelta
-from decimal import Decimal
-from urllib.parse import parse_qs
 
-from fastapi import FastAPI, Depends, HTTPException, Header, Request
+from fastapi import FastAPI, Header
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from sqlalchemy import select, func, cast, Date
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.responses import JSONResponse, FileResponse
 from starlette.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
-from models.database import get_db, init_db
-from models.schema import Agent, User, AgentIdentity
-from config.settings import BOT_TOKEN, API_SECRET
+from models.database import init_db
+from config.settings import API_SECRET
 from api.middleware import (
     limiter, log_requests_middleware,
     rate_limit_handler, global_exception_handler,
-    _api_key_requests, API_KEY_RATE_LIMIT,
-    check_api_key_rate_limit as _check_api_key_rate_limit,
 )
 
 # Re-export for backward compatibility (tests import from api.main)
-from api.models import (
-    SpendRequest, SpendResponse,
-    RefundRequest, RefundResponse,
-    TransferRequest, TransferResponse,
-    BalanceResponse, TransactionOut, HealthResponse,
-    RotateKeyResponse,
-    WalletResponse, MultiChainWalletResponse,
-    SendUsdcRequest, SendUsdcResponse,
-    SendNativeRequest, SendNativeResponse,
-    CardResponse, CardTransactionOut,
-    WebhookSetRequest, WebhookResponse,
-    ApprovalStatusResponse,
-    X402PayRequest, X402PayResponse, X402ProbeResponse,
-    TelegramAuthRequest, TelegramAuthResponse,
-    AgentSettingsUpdate,
-    AgentIdentityUpdate, AgentIdentityOut,
-    TrustScoreBreakdown, DirectoryEntry, DirectoryResponse,
-    DashboardResponse, AgentAnalyticsResponse,
-    VALID_CATEGORIES,
-)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -71,7 +36,6 @@ _project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # ═══════════════════════════════════════
 
 # Trust score calculation (tests reference it)
-from api.routes.identity import _calculate_trust_score, _refresh_identity_counters
 
 # Miniapp auth (tests/routes reference it)
 MINIAPP_JWT_SECRET = API_SECRET

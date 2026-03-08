@@ -2,7 +2,6 @@
 Agent Identity (KYA) endpoints — CRUD and public directory.
 """
 from datetime import datetime, timezone
-from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select, func
@@ -16,7 +15,7 @@ from api.models import (
     VALID_CATEGORIES,
 )
 from models.database import get_db
-from models.schema import Agent, AgentIdentity, Transaction, TransactionStatus
+from models.schema import AgentIdentity, Transaction, TransactionStatus
 
 router = APIRouter(prefix="/v1", tags=["identity"])
 

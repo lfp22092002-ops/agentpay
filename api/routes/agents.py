@@ -3,10 +3,8 @@ Agent CRUD endpoints: balance, key rotation, export.
 """
 import csv
 import io
-from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import StreamingResponse
 
 from api.dependencies import get_agent_auth
@@ -15,7 +13,6 @@ from api.models import (
     BalanceResponse, RotateKeyResponse, TransactionOut,
 )
 from core.wallet import get_daily_spent, get_agent_transactions, rotate_api_key
-from models.schema import Agent
 
 router = APIRouter(prefix="/v1", tags=["agents"])
 

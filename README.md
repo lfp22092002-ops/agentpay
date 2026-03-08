@@ -2,6 +2,7 @@
 
 The payment layer for autonomous AI agents. Fund via Telegram Stars or crypto, set spending rules, let your agent operate independently.
 
+[![CI](https://github.com/lfp22092002-ops/agentpay/actions/workflows/ci.yml/badge.svg)](https://github.com/lfp22092002-ops/agentpay/actions/workflows/ci.yml)
 [![Telegram Bot](https://img.shields.io/badge/Telegram-@FundmyAIbot-blue?logo=telegram)](https://t.me/FundmyAIbot)
 [![Website](https://img.shields.io/badge/Website-leofundmybot.dev-green)](https://leofundmybot.dev)
 [![API Docs](https://img.shields.io/badge/Docs-OpenAPI-orange)](https://leofundmybot.dev/docs)

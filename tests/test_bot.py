@@ -5,24 +5,20 @@ Uses mocked aiogram Message/CallbackQuery objects to test handler behavior
 without a running Telegram bot. Tests verify database side effects and
 response text patterns.
 """
-import asyncio
 import os
 import sys
 from decimal import Decimal
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import pytest_asyncio
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
-from models.schema import User, Agent, Transaction, TransactionType, TransactionStatus, PaymentMethod
-from core.wallet import hash_api_key, get_or_create_user, create_agent, get_user_agents
+from models.schema import User, Agent
+from core.wallet import hash_api_key
 
 
 # ═══════════════════════════════════════
