@@ -10,6 +10,14 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
+try:
+    import coinbase_agentkit  # noqa: F401
+    HAS_COINBASE = True
+except ImportError:
+    HAS_COINBASE = False
+
+pytestmark = pytest.mark.skipif(not HAS_COINBASE, reason="coinbase_agentkit not installed")
+
 
 class MockWalletProvider:
     """Mock CdpEvmWalletProvider."""
