@@ -1,0 +1,27 @@
+# Docker ignores — keep the image small
+.git
+.github
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+tests/
+docs/
+examples/
+landing/
+alembic/
+*.bak
+*.md
+!README.md
+!requirements.txt
+node_modules/
+sdk/ts/node_modules/
+sdk/ts/dist/
+.env
+.env.*
+data/
