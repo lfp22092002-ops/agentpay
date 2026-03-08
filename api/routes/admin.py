@@ -28,11 +28,11 @@ def _verify_admin(request: Request):
         raise HTTPException(401, "Missing auth")
     try:
         payload = pyjwt.decode(auth_header.split(" ")[1], API_SECRET, algorithms=["HS256"])
-        if payload.get("telegram_id") != ADMIN_TELEGRAM_ID:
-            raise HTTPException(403, "Admin only")
-        return payload
     except Exception:
         raise HTTPException(401, "Invalid token")
+    if payload.get("telegram_id") != ADMIN_TELEGRAM_ID:
+        raise HTTPException(403, "Admin only")
+    return payload
 
 
 @router.get("/revenue")
