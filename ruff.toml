@@ -1,0 +1,8 @@
+[lint]
+select = ["E", "F", "W"]
+ignore = ["E501", "E402"]
+exclude = ["alembic/**", "*.bak", "__pycache__"]
+
+[lint.per-file-ignores]
+"tests/*" = ["F841"]  # unused vars in tests are fine (for readability)
+"mcp/server.py" = ["F401"]  # import guard pattern
