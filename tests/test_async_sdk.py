@@ -3,14 +3,11 @@ Tests for sdk/agentpay/async_client.py — async SDK mirror of sync client tests
 
 Uses httpx MockTransport to test all async methods without network calls.
 """
-import json
 import os
 import sys
-from unittest.mock import AsyncMock
 
 import httpx
 import pytest
-import pytest_asyncio
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, PROJECT_ROOT)
