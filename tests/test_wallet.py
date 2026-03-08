@@ -155,7 +155,6 @@ class TestSpend:
         """Same idempotency key should return the same transaction, not create a new one."""
         tx1, err1 = await spend(db, test_agent, Decimal("5.00"), idempotency_key="unique-123", require_approval=False)
         assert err1 is None
-        balance_after_first = test_agent.balance_usd
 
         tx2, err2 = await spend(db, test_agent, Decimal("5.00"), idempotency_key="unique-123", require_approval=False)
         assert err2 is None
@@ -176,7 +175,6 @@ class TestRefund:
         """Refunding a completed spend should credit back amount + fee."""
         initial_balance = test_agent.balance_usd
         tx, _ = await spend(db, test_agent, Decimal("10.00"), require_approval=False)
-        after_spend = test_agent.balance_usd
 
         refund_tx, error = await refund(db, test_agent, tx.id)
         assert error is None

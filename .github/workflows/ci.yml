@@ -55,7 +55,7 @@ jobs:
         run: pip install ruff
 
       - name: Lint
-        run: ruff check . --select E,F,W --ignore E501
+        run: ruff check . --select E,F,W --ignore E501,E402 --exclude alembic
 
   ts-sdk:
     runs-on: ubuntu-latest

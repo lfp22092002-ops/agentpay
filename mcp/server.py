@@ -26,7 +26,7 @@ from typing import Any
 
 _sdk_available = True
 try:
-    from agentpay import AgentPayClient, AgentPayError
+    from agentpay import AgentPayClient  # noqa: F401 AgentPayError
 except ImportError:
     _sdk_available = False
 
