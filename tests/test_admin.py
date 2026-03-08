@@ -4,14 +4,10 @@ Tests for admin API routes — revenue tracking and withdrawal.
 import os
 import sys
 from decimal import Decimal
-from datetime import datetime, timezone
-from unittest.mock import patch, AsyncMock
 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
