@@ -21,7 +21,7 @@ sys.path.insert(0, PROJECT_ROOT)
 
 # Override env before any project imports
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite://"
-os.environ["BOT_TOKEN"] = ""
+os.environ["BOT_TOKEN"] = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz0123456789a"
 os.environ["API_SECRET"] = "test-secret-key-for-tests"
 
 # Build a test engine BEFORE importing models.database so we can swap it in
@@ -35,6 +35,8 @@ import types
 
 # First, make sure config.settings is loadable (it reads env vars, which we set above)
 import config.settings  # noqa
+# Force token override (dotenv may have loaded a different value)
+config.settings.BOT_TOKEN = os.environ["BOT_TOKEN"]
 
 # Now create models.database module manually with our test engine
 db_mod = types.ModuleType("models.database")
