@@ -253,15 +253,16 @@ class TestTelegramAuth:
         """Without BOT_TOKEN, auth should accept in dev mode."""
         app, _, _ = test_app
         transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            resp = await client.post(
-                "/v1/auth/telegram",
-                json={"init_data": "user=%7B%22id%22%3A12345%7D&auth_date=9999999999&hash=abc"},
-            )
-            assert resp.status_code == 200
-            data = resp.json()
-            assert "token" in data
-            assert data["telegram_id"] == 12345
+        with patch("api.routes.miniapp.BOT_TOKEN", ""):
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                resp = await client.post(
+                    "/v1/auth/telegram",
+                    json={"init_data": "user=%7B%22id%22%3A12345%7D&auth_date=9999999999&hash=abc"},
+                )
+                assert resp.status_code == 200
+                data = resp.json()
+                assert "token" in data
+                assert data["telegram_id"] == 12345
 
 
 # ═══════════════════════════════════════
