@@ -131,7 +131,7 @@
             <pre><code><span class="t-dim"># Your agent pays for what it needs</span>
 <span class="t-blue">import</span> agentpay
 
-client = agentpay.Client(api_key=<span class="t-yellow">"ak_live_..."</span>)
+client = agentpay.Client(api_key=<span class="t-yellow">"ap_your_key..."</span>)
 
 <span class="t-dim"># Check balance</span>
 balance = client.balance()
@@ -286,9 +286,9 @@ tx = client.spend(
               <span>Copy</span>
             </button>
           </div>
-          <pre><code>curl -X POST https://api.agentpay.dev/v1/spend \
+          <pre><code>curl -X POST https://leofundmybot.dev/v1/spend \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: ak_live_your_api_key" \
+  -H "Authorization: Bearer ap_your_key..." \
   -d '{
     "amount": 5.00,
     "description": "OpenAI GPT-4 API call"
@@ -306,7 +306,7 @@ tx = client.spend(
           </div>
           <pre><code>import agentpay
 
-client = agentpay.Client(api_key="ak_live_...")
+client = agentpay.Client(api_key="ap_your_key...")
 
 # Spend
 tx = client.spend(amount=5.00, description="GPT-4 API call")
@@ -455,7 +455,7 @@ for t in client.transactions(limit=5):
               Custom integrations
             </li>
           </ul>
-          <a href="mailto:hello@agentpay.dev" class="btn btn-outline btn-block">Contact Us</a>
+          <a href="mailto:hello@leofundmybot.dev" class="btn btn-outline btn-block">Contact Us</a>
         </div>
       </div>
     </div>
@@ -578,7 +578,7 @@ for t in client.transactions(limit=5):
         </div>
         <div class="footer-links">
           <h4>Company</h4>
-          <a href="mailto:hello@agentpay.dev">Contact</a>
+          <a href="mailto:hello@leofundmybot.dev">Contact</a>
           <a href="#">Privacy Policy</a>
           <a href="#">Terms of Service</a>
         </div>
