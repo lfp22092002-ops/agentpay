@@ -38,7 +38,8 @@ from core.wallet import hash_api_key
 
 import jwt as pyjwt
 
-MINIAPP_JWT_SECRET = os.environ.get("API_SECRET", "test-secret-key-for-tests")
+from config.settings import API_SECRET as _REAL_API_SECRET
+MINIAPP_JWT_SECRET = _REAL_API_SECRET
 MINIAPP_JWT_ALGO = "HS256"
 ADMIN_TELEGRAM_ID = 5360481016
 
