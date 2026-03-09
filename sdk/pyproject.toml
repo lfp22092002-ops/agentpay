@@ -40,3 +40,7 @@ Issues = "https://github.com/lfp22092002-ops/agentpay/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["agentpay"]
+
+[tool.hatch.build.targets.sdist]
+include = ["agentpay/", "tests/", "pyproject.toml", "README.md", "LICENSE"]
+exclude = ["ts/", "dist/"]
