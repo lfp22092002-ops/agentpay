@@ -5,7 +5,6 @@ import os
 import sys
 
 import pytest
-import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -16,10 +16,9 @@ Covers:
 import os
 import sys
 import time
-import json
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio

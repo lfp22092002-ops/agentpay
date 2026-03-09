@@ -19,7 +19,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from models.database import Base
-from models.schema import User, Agent, Wallet
+from models.schema import User, Agent
 from core.wallet import hash_api_key
 
 

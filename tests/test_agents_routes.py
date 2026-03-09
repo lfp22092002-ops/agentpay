@@ -169,7 +169,7 @@ class TestExportCSV:
             assert "text/csv" in resp.headers["content-type"]
             assert "attachment" in resp.headers.get("content-disposition", "")
             content = resp.text
-            lines = [l.strip() for l in content.strip().split("\n")]
+            lines = [line.strip() for line in content.strip().split("\n")]
             assert lines[0] == "date,type,amount,fee,description,status,id"
             assert len(lines) == 4  # header + 3 transactions
 

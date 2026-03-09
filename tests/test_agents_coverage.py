@@ -166,7 +166,7 @@ class TestExportWithData:
             assert resp.status_code == 200
             assert "text/csv" in resp.headers.get("content-type", "")
             content = resp.text
-            lines = [l.strip() for l in content.strip().split("\n")]
+            lines = [line.strip() for line in content.strip().split("\n")]
             # Header + 3 data rows
             assert len(lines) == 4
             assert lines[0] == "date,type,amount,fee,description,status,id"
