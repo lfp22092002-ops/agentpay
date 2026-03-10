@@ -153,6 +153,10 @@ async def sitemap_xml():
 async def og_image():
     return FileResponse(os.path.join(_project_dir, "landing", "og-image.svg"), media_type="image/svg+xml")
 
+@app.get("/og-image.png", include_in_schema=False)
+async def og_image_png():
+    return FileResponse(os.path.join(_project_dir, "landing", "og-image.png"), media_type="image/png")
+
 app.mount("/.well-known", StaticFiles(directory=os.path.join(_project_dir, "landing", ".well-known")), name="well-known")
 app.mount("/app", StaticFiles(directory=os.path.join(_project_dir, "miniapp"), html=True), name="miniapp")
 app.mount("/docs-site", StaticFiles(directory=os.path.join(_project_dir, "landing", "docs"), html=True), name="docs-site")
