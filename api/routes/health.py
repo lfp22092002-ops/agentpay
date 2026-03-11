@@ -15,6 +15,7 @@ _project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 
 
 @router.get("/v1/health", response_model=HealthResponse)
+@router.get("/health", response_model=HealthResponse, include_in_schema=False)
 @limiter.limit("30/minute")
 async def health(request: Request):
     return HealthResponse(status="ok", service="agentpay", version="0.1.0")
