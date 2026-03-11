@@ -45,7 +45,7 @@ def autonomous_fetch(url: str, max_price_usd: float = 1.00) -> dict:
 
     # Step 2: x402 — probe the price
     print(f"💰 x402 payment required for {url}")
-    probe = client._get(f"/v1/x402/probe", params={"url": url})
+    probe = client._get("/v1/x402/probe", params={"url": url})
     price = probe.get("price_usd", 0)
     print(f"   Price: ${price:.4f}")
 
@@ -82,7 +82,7 @@ def main():
 
     # Check what was spent
     txs = client.get_transactions(limit=3)
-    print(f"\nRecent transactions:")
+    print("\nRecent transactions:")
     for tx in txs:
         print(f"  {tx.type}: ${tx.amount} — {tx.description}")
 
