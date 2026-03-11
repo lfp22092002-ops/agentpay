@@ -45,7 +45,7 @@ def autonomous_fetch(url: str, max_price_usd: float = 1.00) -> dict:
 
     # Step 2: x402 — probe the price
     print(f"💰 x402 payment required for {url}")
-    probe = client._get("/v1/x402/probe", params={"url": url})
+    probe = client._request("GET", "/v1/x402/probe", params={"url": url})
     price = probe.get("price_usd", 0)
     print(f"   Price: ${price:.4f}")
 
@@ -53,7 +53,7 @@ def autonomous_fetch(url: str, max_price_usd: float = 1.00) -> dict:
         raise ValueError(f"Price ${price} exceeds budget ${max_price_usd}")
 
     # Step 3: Pay and access
-    result = client._post("/v1/x402/pay", json={
+    result = client._request("POST", "/v1/x402/pay", json={
         "url": url,
         "max_price_usd": max_price_usd,
     })
