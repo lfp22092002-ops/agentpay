@@ -39,7 +39,11 @@ from .models import (
 
 __version__ = "0.1.0"
 
+# Convenience alias — many examples use `AgentPay` as shorthand
+AgentPay = AgentPayClient
+
 __all__ = [
+    "AgentPay",
     "AgentPayClient",
     "AgentPayAsyncClient",
     "AgentPayError",
