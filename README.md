@@ -37,12 +37,13 @@ Send Telegram Stars through the bot, or deposit USDC to the agent's Base wallet.
 ### 3. Let It Spend
 
 ```python
-from agentpay import AgentPay
+from agentpay import AgentPayClient
 
-client = AgentPay(api_key="ap_xxxx...")
+client = AgentPayClient("ap_xxxx...")
 
 # Check balance
 balance = client.get_balance()
+print(f"Balance: ${balance.balance_usd}")
 
 # Spend
 tx = client.spend(amount=5.00, recipient="provider-wallet", description="GPT-4 batch")
