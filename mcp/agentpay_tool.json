@@ -1,6 +1,6 @@
 {
   "name": "agentpay",
-  "description": "Manage AI agent wallet — check balance, spend, get transactions, transfer funds, and interact with on-chain wallets.",
+  "description": "Manage AI agent wallet \u2014 check balance, spend, get transactions, transfer funds, and interact with on-chain wallets.",
   "version": "0.1.0",
   "tools": [
     {
@@ -30,7 +30,10 @@
             "description": "Optional unique key to prevent duplicate charges"
           }
         },
-        "required": ["amount", "description"]
+        "required": [
+          "amount",
+          "description"
+        ]
       }
     },
     {
@@ -58,7 +61,9 @@
             "description": "ID of the transaction to refund"
           }
         },
-        "required": ["transaction_id"]
+        "required": [
+          "transaction_id"
+        ]
       }
     },
     {
@@ -80,7 +85,10 @@
             "description": "Optional description for the transfer"
           }
         },
-        "required": ["to_agent_id", "amount"]
+        "required": [
+          "to_agent_id",
+          "amount"
+        ]
       }
     },
     {
@@ -91,7 +99,12 @@
         "properties": {
           "chain": {
             "type": "string",
-            "enum": ["base", "polygon", "bnb", "solana"],
+            "enum": [
+              "base",
+              "polygon",
+              "bnb",
+              "solana"
+            ],
             "default": "base",
             "description": "Blockchain network"
           }
@@ -121,7 +134,40 @@
             "description": "Maximum price willing to pay in USD (default 1.0)"
           }
         },
-        "required": ["url"]
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "agentpay_webhook",
+      "description": "Register a webhook endpoint to receive real-time events (spend, refund, transfer).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "HTTPS URL to receive webhook events"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Event types to subscribe to (e.g. spend, refund, transfer). Default: all."
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "agentpay_identity",
+      "description": "Get the agent identity profile including trust score, verification status, and public directory info.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
       }
     }
   ]

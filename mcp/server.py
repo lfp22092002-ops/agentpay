@@ -118,6 +118,24 @@ def handle_x402_pay(params: dict[str, Any]) -> dict[str, Any]:
     return result.model_dump()
 
 
+def handle_webhook(params: dict[str, Any]) -> dict[str, Any]:
+    """Register a webhook endpoint."""
+    client = _get_client()
+    result = client.register_webhook(
+        url=params["url"],
+        events=params.get("events"),
+    )
+    return result.model_dump()
+
+
+def handle_identity(_params: dict[str, Any]) -> dict[str, Any]:
+    """Get agent identity profile."""
+    client = _get_client()
+    # Use the raw request since the SDK client doesn't have a dedicated identity method yet
+    data = client._request("GET", "/v1/identity")
+    return data
+
+
 # Tool name → handler mapping
 TOOL_HANDLERS: dict[str, Any] = {
     "agentpay_balance": handle_balance,
@@ -128,6 +146,8 @@ TOOL_HANDLERS: dict[str, Any] = {
     "agentpay_wallet": handle_wallet,
     "agentpay_chains": handle_chains,
     "agentpay_x402_pay": handle_x402_pay,
+    "agentpay_webhook": handle_webhook,
+    "agentpay_identity": handle_identity,
 }
 
 # ---------------------------------------------------------------------------
