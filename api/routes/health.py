@@ -18,6 +18,7 @@ _project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 @router.get("/health", response_model=HealthResponse, include_in_schema=False)
 @limiter.limit("30/minute")
 async def health(request: Request):
+    """Check API health status. Returns service name and version."""
     return HealthResponse(status="ok", service="agentpay", version="0.1.0")
 
 

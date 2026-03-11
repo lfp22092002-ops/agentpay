@@ -42,6 +42,7 @@ router = APIRouter(prefix="/v1", tags=["wallets"])
 @router.post("/spend", response_model=SpendResponse)
 @limiter.limit("30/minute")
 async def do_spend(req: SpendRequest, request: Request, auth: tuple = Depends(get_agent_auth)):
+    """Spend funds from the agent's balance. Supports idempotency keys and approval workflows."""
     agent, db = auth
     amount = Decimal(str(req.amount)).quantize(Decimal("0.0001"))
 
@@ -244,6 +245,7 @@ async def api_send_native(req: SendNativeRequest, request: Request, auth: tuple 
 
 @router.get("/card", response_model=CardResponse)
 async def card_info(auth: tuple = Depends(get_agent_auth)):
+    """Get virtual card details (last4, expiry, state, spend limit)."""
     agent, db = auth
     details = get_card_details(agent.id)
     if not details:

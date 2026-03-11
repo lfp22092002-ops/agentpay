@@ -12,6 +12,7 @@
           "health"
         ],
         "summary": "Health",
+        "description": "Check API health status. Returns service name and version.",
         "operationId": "health_v1_health_get",
         "responses": {
           "200": {
@@ -234,6 +235,7 @@
           "wallets"
         ],
         "summary": "Do Spend",
+        "description": "Spend funds from the agent's balance. Supports idempotency keys and approval workflows.",
         "operationId": "do_spend_v1_spend_post",
         "parameters": [
           {
@@ -610,6 +612,7 @@
           "wallets"
         ],
         "summary": "Card Info",
+        "description": "Get virtual card details (last4, expiry, state, spend limit).",
         "operationId": "card_info_v1_card_get",
         "parameters": [
           {
