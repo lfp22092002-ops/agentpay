@@ -256,6 +256,27 @@ class AgentPayAsyncClient:
         return X402Response(**data)
 
     # ------------------------------------------------------------------
+    # Identity
+    # ------------------------------------------------------------------
+
+    async def get_identity(self) -> Dict[str, Any]:
+        """Get the agent's identity profile (KYA).
+
+        Returns:
+            A dict with display_name, description, trust_score,
+            verified status, and directory info.
+        """
+        return await self._request("GET", "/v1/agent/identity")
+
+    async def get_trust_score(self) -> Dict[str, Any]:
+        """Get the agent's trust score breakdown.
+
+        Returns:
+            A dict with total score and per-category points.
+        """
+        return await self._request("GET", "/v1/agent/identity/score")
+
+    # ------------------------------------------------------------------
     # Cleanup
     # ------------------------------------------------------------------
 

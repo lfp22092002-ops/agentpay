@@ -303,6 +303,37 @@ class AgentPayClient:
         return X402Response(**data)
 
     # ------------------------------------------------------------------
+    # Identity
+    # ------------------------------------------------------------------
+
+    def get_identity(self) -> Dict[str, Any]:
+        """Get the agent's identity profile (KYA).
+
+        Returns:
+            A dict with display_name, description, trust_score,
+            verified status, and directory info.
+
+        Example::
+
+            identity = client.get_identity()
+            print(f"Trust score: {identity['trust_score']}")
+        """
+        return self._request("GET", "/v1/agent/identity")
+
+    def get_trust_score(self) -> Dict[str, Any]:
+        """Get the agent's trust score breakdown.
+
+        Returns:
+            A dict with total score and per-category points.
+
+        Example::
+
+            score = client.get_trust_score()
+            print(f"Total: {score['total']}/100")
+        """
+        return self._request("GET", "/v1/agent/identity/score")
+
+    # ------------------------------------------------------------------
     # Cleanup
     # ------------------------------------------------------------------
 
