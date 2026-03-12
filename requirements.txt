@@ -4,7 +4,7 @@ asyncpg==0.31.0
 cryptography==46.0.0
 eth-account==0.13.7
 fastapi==0.131.0
-fastapi-cli==0.0.23
+fastapi-cli==0.0.24
 fastapi-cloud-cli==0.13.0
 httpx==0.28.1
 lithic==0.115.0
