@@ -55,7 +55,7 @@ class TestMCPInitialize:
         data = resp.json()
         assert data["id"] == 1
         assert data["result"]["serverInfo"]["name"] == "agentpay"
-        assert data["result"]["protocolVersion"] == "2024-11-05"
+        assert data["result"]["protocolVersion"] == "2025-11-25"
         assert "tools" in data["result"]["capabilities"]
 
 
