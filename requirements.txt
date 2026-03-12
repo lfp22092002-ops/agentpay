@@ -1,7 +1,7 @@
 aiogram==3.25.0
 alembic==1.16.1
 asyncpg==0.31.0
-cryptography==46.0.0
+cryptography==46.0.5
 eth-account==0.13.7
 fastapi==0.131.0
 fastapi-cli==0.0.23
