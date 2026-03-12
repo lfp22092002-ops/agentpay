@@ -1,0 +1,19 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "AgentPay",
+  "name_for_model": "agentpay",
+  "description_for_human": "Payment infrastructure for AI agents. Fund via Telegram Stars or USDC, spend via API, track everything.",
+  "description_for_model": "AgentPay provides payment capabilities for AI agents. Use this to check balance, spend funds, transfer between agents, manage on-chain USDC wallets (Base, Polygon, BNB, Solana), register webhooks, access x402-gated resources, and view agent identity/trust scores. Authenticate with an API key via X-API-Key header.",
+  "auth": {
+    "type": "service_http",
+    "authorization_type": "custom",
+    "custom_auth_header": "X-API-Key"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://leofundmybot.dev/openapi.json"
+  },
+  "logo_url": "https://leofundmybot.dev/og-image.png",
+  "contact_email": "hello@leofundmybot.dev",
+  "legal_info_url": "https://leofundmybot.dev/docs-site/"
+}
