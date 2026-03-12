@@ -1,0 +1,22 @@
+# AgentPay MCP Server
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      apiKey:
+        type: string
+        title: AgentPay API Key
+        description: Your AgentPay API key (starts with ap_)
+    required:
+      - apiKey
+  commandFunction: |
+    (config) => ({
+      command: "python",
+      args: ["mcp/server.py"],
+      env: {
+        AGENTPAY_API_KEY: config.apiKey,
+        AGENTPAY_BASE_URL: "https://leofundmybot.dev"
+      }
+    })
