@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -42,6 +43,7 @@ class AgentPayClient:
         api_key: str,
         base_url: str = "https://leofundmybot.dev",
         timeout: float = 30.0,
+        max_retries: int = 3,
     ) -> None:
         """Initialise the AgentPay client.
 
@@ -49,9 +51,11 @@ class AgentPayClient:
             api_key: Your agent API key (starts with ``ap_``).
             base_url: Base URL of the AgentPay API server.
             timeout: Request timeout in seconds.
+            max_retries: Max retries for transient failures (429, 5xx, network).
         """
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
+        self._max_retries = max_retries
         self._client = httpx.Client(
             base_url=self._base_url,
             headers={"X-API-Key": self._api_key},
@@ -72,29 +76,59 @@ class AgentPayClient:
     ) -> Any:
         """Send an HTTP request and return parsed JSON.
 
+        Retries on transient errors (429, 5xx, network) with exponential backoff.
+
         Raises:
             AuthenticationError: If the API key is invalid (401).
             InsufficientBalanceError: On insufficient funds (402/400 with balance hint).
-            RateLimitError: If rate limited (429).
+            RateLimitError: If rate limited (429) and retries exhausted.
             AgentPayError: For all other non-2xx responses.
         """
-        response = self._client.request(method, path, json=json, params=params)
-        if response.is_success:
-            return response.json()
+        last_exc: Optional[Exception] = None
+        for attempt in range(self._max_retries + 1):
+            try:
+                response = self._client.request(method, path, json=json, params=params)
+            except (httpx.ConnectError, httpx.ReadTimeout, httpx.WriteTimeout, httpx.PoolTimeout) as exc:
+                last_exc = exc
+                if attempt < self._max_retries:
+                    time.sleep(min(2 ** attempt, 8))
+                    continue
+                raise AgentPayError(0, f"Network error after {self._max_retries + 1} attempts: {exc}")
 
-        # Parse error detail
-        try:
-            detail = response.json().get("detail", response.text)
-        except Exception:
-            detail = response.text
+            if response.is_success:
+                return response.json()
 
-        if response.status_code == 401:
-            raise AuthenticationError(detail)
-        if response.status_code == 429:
-            raise RateLimitError(detail)
-        if response.status_code in (402, 400) and "balance" in str(detail).lower():
-            raise InsufficientBalanceError(detail)
-        raise AgentPayError(response.status_code, detail)
+            # Parse error detail
+            try:
+                detail = response.json().get("detail", response.text)
+            except Exception:
+                detail = response.text
+
+            # Non-retryable errors
+            if response.status_code == 401:
+                raise AuthenticationError(detail)
+            if response.status_code in (402, 400) and "balance" in str(detail).lower():
+                raise InsufficientBalanceError(detail)
+
+            # Retryable errors
+            if response.status_code in (429, 500, 502, 503, 504):
+                last_exc = AgentPayError(response.status_code, detail)
+                if attempt < self._max_retries:
+                    if response.status_code == 429:
+                        # Respect Retry-After header if present
+                        retry_after = response.headers.get("Retry-After")
+                        delay = float(retry_after) if retry_after else min(2 ** attempt, 8)
+                    else:
+                        delay = min(2 ** attempt, 8)
+                    time.sleep(delay)
+                    continue
+                if response.status_code == 429:
+                    raise RateLimitError(detail)
+
+            raise AgentPayError(response.status_code, detail)
+
+        # Should not reach here, but just in case
+        raise last_exc or AgentPayError(0, "Unknown error")
 
     # ------------------------------------------------------------------
     # Balance & wallet
