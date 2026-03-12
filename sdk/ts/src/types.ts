@@ -101,3 +101,36 @@ export interface AgentPayOptions {
   /** Request timeout in milliseconds (default: 30000). */
   timeoutMs?: number;
 }
+
+/** Agent identity profile (KYA — Know Your Agent). */
+export interface AgentIdentity {
+  agent_id: string;
+  display_name: string;
+  description?: string;
+  homepage_url?: string;
+  logo_url?: string;
+  category?: string;
+  verified: boolean;
+  trust_score: number;
+  total_transactions: number;
+  total_volume_usd: number;
+  first_seen: string;
+  last_active: string;
+  metadata_json?: string;
+}
+
+/** Trust score breakdown. */
+export interface TrustScoreBreakdown {
+  total: number;
+  account_age_pts: number;
+  account_age_max: number;
+  transaction_count_pts: number;
+  transaction_count_max: number;
+  volume_pts: number;
+  volume_max: number;
+  profile_completeness_pts: number;
+  profile_completeness_max: number;
+  verified_pts: number;
+  verified_max: number;
+  details: Record<string, unknown>;
+}

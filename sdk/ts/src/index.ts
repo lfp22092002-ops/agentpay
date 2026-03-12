@@ -8,6 +8,7 @@ export {
   RateLimitError,
 } from "./errors.js";
 export type {
+  AgentIdentity,
   AgentPayOptions,
   Balance,
   Chain,
@@ -15,6 +16,7 @@ export type {
   SpendResponse,
   Transaction,
   TransferResponse,
+  TrustScoreBreakdown,
   Wallet,
   Webhook,
   X402Response,

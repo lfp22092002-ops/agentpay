@@ -2,12 +2,14 @@
 
 import type {
   AgentPayOptions,
+  AgentIdentity,
   Balance,
   Chain,
   RefundResponse,
   SpendResponse,
   Transaction,
   TransferResponse,
+  TrustScoreBreakdown,
   Wallet,
   Webhook,
   X402Response,
@@ -205,5 +207,19 @@ export class AgentPayClient {
     const json: Record<string, unknown> = { url };
     if (maxAmount !== undefined) json.max_price_usd = maxAmount;
     return this.request<X402Response>("POST", "/v1/x402/pay", { json });
+  }
+
+  // ------------------------------------------------------------------
+  // Identity (KYA)
+  // ------------------------------------------------------------------
+
+  /** Get the agent's identity profile. */
+  async getIdentity(): Promise<AgentIdentity> {
+    return this.request<AgentIdentity>("GET", "/v1/agent/identity");
+  }
+
+  /** Get the agent's trust score breakdown. */
+  async getTrustScore(): Promise<TrustScoreBreakdown> {
+    return this.request<TrustScoreBreakdown>("GET", "/v1/agent/identity/score");
   }
 }
