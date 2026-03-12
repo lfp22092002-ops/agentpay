@@ -44,20 +44,21 @@ async def main():
 ## Wallets
 
 ```python
-# Get multi-chain wallet info
-wallets = client.get_wallets()
-for chain in wallets.chains:
-    print(f"{chain['chain']}: {chain['address']}")
+# Get wallet info for a chain
+wallet = client.get_wallet(chain="base")
+print(f"Address: {wallet.address}")
 
-# Send USDC on Base
-result = client.send_usdc("0x...", 10.0, chain="base")
+# List all supported chains
+chains = client.list_chains()
+for c in chains:
+    print(f"{c.chain}: {c.address}")
 ```
 
 ## Webhooks
 
 ```python
 # Register a webhook
-client.set_webhook("https://example.com/webhook", events=["spend", "deposit"])
+client.register_webhook("https://example.com/webhook", events=["spend", "deposit"])
 
 # Verify incoming webhook signatures
 from agentpay import verify_webhook_signature
