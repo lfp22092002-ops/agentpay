@@ -42,10 +42,10 @@ The core idea: *agents should have bank accounts, not credit cards.* You fund th
 ```
 
 When an agent wants to spend money:
-1. It calls `POST /v1/spend` with amount, description, and recipient
+1. It calls `POST /v1/spend` with amount and description
 2. AgentPay checks limits — if under auto-approve threshold, it goes through
 3. If above threshold, it sends a Telegram notification asking the human to approve
-4. On approval, USDC transfers on-chain
+4. On approval, the balance is deducted and the transaction is logged
 
 ## Quick Start
 
@@ -62,8 +62,6 @@ print(f"Available: ${balance.balance_usd}")
 result = client.spend(
     amount=2.50,
     description="GPT-4 API call",
-    recipient="0x...",
-    chain="base",
 )
 print(f"TX: {result.transaction_id}")
 ```

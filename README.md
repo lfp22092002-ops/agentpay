@@ -46,21 +46,22 @@ balance = client.get_balance()
 print(f"Balance: ${balance.balance_usd}")
 
 # Spend
-tx = client.spend(amount=5.00, recipient="provider-wallet", description="GPT-4 batch")
+tx = client.spend(amount=5.00, description="GPT-4 batch")
+print(f"Spent ${tx.amount}, remaining ${tx.remaining_balance}")
 
 # Transfer between agents
-client.transfer(to_agent="agent_456", amount=10.00)
+client.transfer(to_agent_id="agent_456", amount=10.00)
 
 # Webhook for real-time events
-client.create_webhook(url="https://your-server.com/hook", events=["transaction.completed"])
+webhook = client.register_webhook(url="https://your-server.com/hook", events=["transaction.completed"])
 ```
 
 Or use the REST API directly:
 ```bash
-curl -X POST https://leofundmybot.dev/api/spend \
-  -H "Authorization: Bearer ap_xxxx..." \
+curl -X POST https://leofundmybot.dev/v1/spend \
+  -H "X-API-Key: ap_xxxx..." \
   -H "Content-Type: application/json" \
-  -d '{"amount": 5.00, "recipient": "provider-id", "description": "API usage"}'
+  -d '{"amount": 5.00, "description": "API usage"}'
 ```
 
 ---
