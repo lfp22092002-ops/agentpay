@@ -723,8 +723,8 @@ else:
 client = AgentPayClient(api_key="ap_live_your_api_key")
 
 # Or async:
-from agentpay import AsyncAgentPayClient
-client = AsyncAgentPayClient(api_key="ap_live_your_api_key")</code></pre>
+from agentpay import AgentPayAsyncClient
+client = AgentPayAsyncClient(api_key="ap_live_your_api_key")</code></pre>
       </div>
 
       <h3>Make a payment</h3>
@@ -739,8 +739,8 @@ client = AsyncAgentPayClient(api_key="ap_live_your_api_key")</code></pre>
     idempotency_key="req_abc123"
 )
 
-print(f"Transaction: {result['transaction_id']}")
-print(f"Balance: ${result['balance_after']}")</code></pre>
+print(f"Transaction: {result.transaction_id}")
+print(f"Remaining: ${result.remaining_balance}")</code></pre>
       </div>
 
       <h3>Check balance</h3>
@@ -750,8 +750,8 @@ print(f"Balance: ${result['balance_after']}")</code></pre>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
         <pre><code class="language-python">balance = client.get_balance()
-print(f"Available: ${balance['balance_usd']}")
-print(f"Daily spent: ${balance['daily_spent_usd']}")</code></pre>
+print(f"Available: ${balance.balance_usd}")
+print(f"Daily spent: ${balance.daily_spent_usd}")</code></pre>
       </div>
 
       <h3>List transactions</h3>
@@ -762,7 +762,7 @@ print(f"Daily spent: ${balance['daily_spent_usd']}")</code></pre>
         </div>
         <pre><code class="language-python">txns = client.get_transactions(limit=10)
 for t in txns:
-    print(f"{t['created_at']}: ${t['amount_usd']} — {t['description']}")</code></pre>
+    print(f"{t.created_at}: ${t.amount} — {t.description}")</code></pre>
       </div>
 
       <h3>Send USDC on-chain</h3>
@@ -771,11 +771,15 @@ for t in txns:
           <span>Python</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-python">result = client.send_usdc(
-    to_address="0x5678...efgh",
-    amount=50.00,
-    chain="base"
+        <pre><code class="language-python">import httpx
+
+# On-chain send via REST API
+response = httpx.post(
+    "https://leofundmybot.dev/v1/wallet/send-usdc",
+    headers={"X-API-Key": "ap_your_api_key"},
+    json={"to_address": "0x5678...efgh", "amount": 50.0, "chain": "base"}
 )
+result = response.json()
 print(f"TX Hash: {result['tx_hash']}")</code></pre>
       </div>
 
@@ -785,15 +789,17 @@ print(f"TX Hash: {result['tx_hash']}")</code></pre>
           <span>Python</span>
           <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
         </div>
-        <pre><code class="language-python">client.set_webhook(url="https://your-server.com/webhooks/agentpay")
+        <pre><code class="language-python">webhook = client.register_webhook(
+    url="https://your-server.com/webhooks/agentpay",
+    events=["spend", "refund", "transfer"]
+)
+print(f"Signing secret: {webhook.secret}")
 
-# Verify incoming webhooks
-from agentpay import AgentPayClient
-is_valid = AgentPayClient.verify_webhook(
-    payload=request.body,
-    signature=request.headers["X-AgentPay-Signature"],
-    secret="your_webhook_secret"
-)</code></pre>
+# Verify incoming webhooks with HMAC-SHA256
+import hmac, hashlib
+def verify_webhook(payload: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(f"sha256={expected}", signature)</code></pre>
       </div>
 
       <!-- TypeScript SDK -->
@@ -821,7 +827,7 @@ const client = new AgentPayClient({ apiKey: 'ap_live_your_api_key' });
 
 // Spend
 const tx = await client.spend(5.00, 'GPT-4 API call');
-console.log(`Balance: $${tx.balance_after}`);
+console.log(`Remaining: $${tx.remaining_balance}`);
 
 // Check balance
 const balance = await client.getBalance();

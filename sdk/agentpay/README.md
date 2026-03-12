@@ -33,10 +33,10 @@ client.refund(tx.transaction_id, reason="Duplicate charge")
 ## Async Usage
 
 ```python
-from agentpay import AsyncAgentPayClient
+from agentpay import AgentPayAsyncClient
 
 async def main():
-    client = AsyncAgentPayClient("ap_your_api_key")
+    client = AgentPayAsyncClient("ap_your_api_key")
     balance = await client.get_balance()
     print(f"Balance: ${balance.balance_usd}")
 ```
