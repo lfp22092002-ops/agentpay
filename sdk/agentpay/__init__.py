@@ -24,6 +24,7 @@ from .exceptions import (
     AuthenticationError,
     InsufficientBalanceError,
     RateLimitError,
+    verify_webhook_signature,
 )
 from .models import (
     Balance,
@@ -50,6 +51,7 @@ __all__ = [
     "AuthenticationError",
     "InsufficientBalanceError",
     "RateLimitError",
+    "verify_webhook_signature",
     "Balance",
     "Chain",
     "RefundResponse",
