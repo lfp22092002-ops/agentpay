@@ -4,6 +4,12 @@ AgentPay MCP Streamable HTTP endpoint.
 Mounts at /mcp on the FastAPI app, providing remote MCP access
 via Streamable HTTP transport (POST for requests, GET for SSE).
 
+Implements the MCP Streamable HTTP spec including:
+- Mcp-Session-Id header for session management
+- Session creation on initialize, validation on subsequent requests
+- DELETE /mcp for session termination
+- SSE and JSON response modes
+
 This allows Smithery and other MCP clients to connect to AgentPay
 as a remote URL server instead of requiring local stdio installation.
 """
@@ -12,6 +18,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 import uuid
 from typing import Any
 
@@ -21,6 +28,52 @@ from fastapi.responses import StreamingResponse
 logger = logging.getLogger("agentpay.mcp")
 
 router = APIRouter(tags=["mcp"])
+
+# ---------------------------------------------------------------------------
+# Session store (in-memory, TTL-based)
+# ---------------------------------------------------------------------------
+
+_SESSION_TTL = 3600  # 1 hour
+_sessions: dict[str, dict[str, Any]] = {}  # session_id -> {created_at, last_used, api_key}
+
+
+def _create_session(api_key: str | None = None) -> str:
+    """Create a new MCP session and return its ID."""
+    session_id = str(uuid.uuid4())
+    _sessions[session_id] = {
+        "created_at": time.time(),
+        "last_used": time.time(),
+        "api_key": api_key,
+    }
+    # Prune expired sessions periodically
+    _prune_sessions()
+    return session_id
+
+
+def _validate_session(session_id: str) -> bool:
+    """Check if a session exists and is not expired."""
+    session = _sessions.get(session_id)
+    if not session:
+        return False
+    if time.time() - session["last_used"] > _SESSION_TTL:
+        del _sessions[session_id]
+        return False
+    session["last_used"] = time.time()
+    return True
+
+
+def _delete_session(session_id: str) -> bool:
+    """Delete a session. Returns True if it existed."""
+    return _sessions.pop(session_id, None) is not None
+
+
+def _prune_sessions() -> None:
+    """Remove expired sessions."""
+    now = time.time()
+    expired = [sid for sid, s in _sessions.items() if now - s["last_used"] > _SESSION_TTL]
+    for sid in expired:
+        del _sessions[sid]
+
 
 # ---------------------------------------------------------------------------
 # Load tool definitions from the companion JSON file
@@ -197,6 +250,39 @@ def _process_jsonrpc(msg: dict[str, Any], api_key: str | None = None) -> dict[st
 
 
 # ---------------------------------------------------------------------------
+# Response helpers
+# ---------------------------------------------------------------------------
+
+def _make_response(resp: dict | list | None, use_sse: bool, session_id: str | None = None) -> Response:
+    """Build HTTP response with optional SSE and session header."""
+    extra_headers = {}
+    if session_id:
+        extra_headers["Mcp-Session-Id"] = session_id
+
+    if resp is None:
+        return Response(status_code=202, headers=extra_headers)
+
+    if use_sse:
+        items = resp if isinstance(resp, list) else [resp]
+
+        async def sse_stream():
+            for item in items:
+                yield f"data: {json.dumps(item)}\n\n"
+
+        return StreamingResponse(
+            sse_stream(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", **extra_headers},
+        )
+
+    return Response(
+        content=json.dumps(resp),
+        media_type="application/json",
+        headers=extra_headers,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Streamable HTTP transport endpoints
 # ---------------------------------------------------------------------------
 
@@ -208,8 +294,13 @@ async def mcp_post(request: Request):
     Accepts JSON-RPC messages (single or batch) and returns responses.
     If Accept includes text/event-stream, responds with SSE.
     Otherwise returns plain JSON-RPC.
+
+    Session management:
+    - On `initialize`: creates a new session, returns Mcp-Session-Id header
+    - On subsequent requests: validates Mcp-Session-Id, returns 404 if invalid
     """
     api_key = request.headers.get("x-api-key") or request.query_params.get("apiKey")
+    session_id = request.headers.get("mcp-session-id")
 
     try:
         body = await request.json()
@@ -227,6 +318,30 @@ async def mcp_post(request: Request):
     accept = request.headers.get("accept", "")
     use_sse = "text/event-stream" in accept
 
+    # Detect if this is an initialize request
+    is_init = False
+    if isinstance(body, dict) and body.get("method") == "initialize":
+        is_init = True
+    elif isinstance(body, list):
+        is_init = any(m.get("method") == "initialize" for m in body if isinstance(m, dict))
+
+    # Session validation
+    if is_init:
+        # Create new session on initialize
+        session_id = _create_session(api_key)
+    elif session_id:
+        # Validate existing session; per spec, return 404 if unknown/expired
+        if not _validate_session(session_id):
+            return Response(
+                content=json.dumps({
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {"code": -32600, "message": "Invalid or expired session"},
+                }),
+                media_type="application/json",
+                status_code=404,
+            )
+
     # Handle batch
     if isinstance(body, list):
         responses = []
@@ -234,52 +349,27 @@ async def mcp_post(request: Request):
             resp = _process_jsonrpc(msg, api_key)
             if resp is not None:
                 responses.append(resp)
-
-        if use_sse:
-            async def sse_batch():
-                for resp in responses:
-                    yield f"data: {json.dumps(resp)}\n\n"
-
-            return StreamingResponse(
-                sse_batch(),
-                media_type="text/event-stream",
-                headers={"Cache-Control": "no-cache"},
-            )
-
-        return Response(
-            content=json.dumps(responses),
-            media_type="application/json",
-        )
+        return _make_response(responses if responses else None, use_sse, session_id)
 
     # Single message
     resp = _process_jsonrpc(body, api_key)
-
-    if resp is None:
-        # Notification — accepted but no response body
-        return Response(status_code=202)
-
-    if use_sse:
-        async def sse_single():
-            yield f"data: {json.dumps(resp)}\n\n"
-
-        return StreamingResponse(
-            sse_single(),
-            media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache"},
-        )
-
-    return Response(
-        content=json.dumps(resp),
-        media_type="application/json",
-    )
+    return _make_response(resp, use_sse, session_id)
 
 
 @router.get("/mcp")
-async def mcp_get():
+async def mcp_get(request: Request):
     """
-    MCP endpoint info (GET).
-    Returns server capabilities for discovery.
+    MCP SSE stream endpoint (GET).
+
+    Per the Streamable HTTP spec, GET opens an SSE stream for server-initiated
+    messages. For AgentPay, we return server info since we don't push events.
+    Validates Mcp-Session-Id if provided.
     """
+    session_id = request.headers.get("mcp-session-id")
+
+    if session_id and not _validate_session(session_id):
+        return Response(status_code=404)
+
     return {
         "name": "agentpay",
         "version": "0.1.0",
@@ -288,3 +378,26 @@ async def mcp_get():
         "tools_count": len(_get_tools()),
         "docs": "https://leofundmybot.dev/docs-site/",
     }
+
+
+@router.delete("/mcp")
+async def mcp_delete(request: Request):
+    """
+    Terminate an MCP session.
+
+    Per the Streamable HTTP spec, clients send DELETE to end a session.
+    Returns 200 if session was terminated, 404 if session not found.
+    """
+    session_id = request.headers.get("mcp-session-id")
+
+    if not session_id:
+        return Response(
+            content=json.dumps({"error": "Mcp-Session-Id header required"}),
+            media_type="application/json",
+            status_code=400,
+        )
+
+    if _delete_session(session_id):
+        return Response(status_code=200)
+    else:
+        return Response(status_code=404)
