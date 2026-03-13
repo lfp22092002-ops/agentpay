@@ -64,11 +64,30 @@
 - **Forrester's take**: "Agentic commerce" is still experimental; only 23-35% of US adults have used ChatGPT for product search (varies by generation)
 - **For AgentPay**: Validates that consumer-facing agentic commerce is too early, but developer/API agentic payments (our lane) are a different beast — agents paying for compute/data/APIs is real NOW ($1.6M/month genuine volume)
 
+### Kraken CLI (Mar 12, 2026) — Exchange-as-Agent-Tool
+- **What**: Open-source Rust CLI with built-in MCP server — 134 commands for spot, futures, staking, subaccounts
+- **Key feature**: Paper trading engine (live data, zero risk) — AI agents can test strategies safely
+- **MCP-native**: `kraken mcp` turns CLI into self-describing plugin for Claude Code, Codex, Cursor, OpenClaw
+- **NDJSON output**: Machine-readable by default, zero-dependency binary
+- **Assessment**: Kraken joins Binance/OKX in the "exchange as agent infrastructure" race. Their MCP-native approach is more developer-friendly than Binance's Skills model. AgentPay could integrate as the budget/wallet layer that governs how much an agent can spend on Kraken trades.
+
+### World Liberty Financial (WLFI) — Trump-Backed Agentic Payments (Mar 11, 2026)
+- **What**: Trump family's crypto project entering AI agent payments market
+- **Co-founder quote**: "agentic payments is a field with a market so large it's hard to imagine"
+- **Status**: "continued development behind the scenes", update coming soon
+- **Assessment**: Political attention validates the market but adds regulatory noise. If WLFI launches a payment protocol, it could fragment the ecosystem further. For AgentPay: being open-source and politically neutral is a differentiator.
+
+### Alchemy x402 Agent Flow (Mar 2026)
+- **What**: Full autonomous agent payment flow — agent wallet as identity + payment, HTTP 402 request, auto-top-up via USDC on Base
+- **Significance**: First end-to-end demo of agents paying for compute starting at $1, pay-as-you-go
+- **Assessment**: Alchemy providing the wallet infrastructure, x402 the payment rail. AgentPay's value add: budget governance + approval workflows on top of this same flow.
+
 ## x402 Ecosystem Growth
 - **Chains**: Base, Solana, Polygon, Stellar, Etherlink (Tezos), Algorand, TRON (planned)
 - **Integrations**: Stripe, Cloudflare, Vercel, Google AP2
 - **Developer adoption**: Indie devs building 402 paywalled APIs (Express.js middleware, ~15 lines)
 - **Bloomberg (Mar 7)**: "Stablecoin firms bet big on AI agent payments that barely exist" — Circle + Stripe racing to build for future volume; Visa/MC stock dropped on Citrini Research scenario of agents routing around card fees
+- **Millionero (Mar 12)**: Comprehensive "AI Agents in Crypto" overview — confirms infrastructure is live, cites Alchemy x402 flow, SingularityDAO DynaSets, Olas Governatooorr, Walbi no-code agents. 73.2% prompt injection success rate without defenses = security is THE challenge.
 
 ## AgentPay Positioning
 
