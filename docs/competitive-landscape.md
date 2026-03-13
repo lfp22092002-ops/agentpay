@@ -101,9 +101,29 @@
 | Identity (KYA) | Built-in | Built-in | Via KYC | Via AgentKit |
 | Pricing | Free (beta) | API subscription | Enterprise | Free (protocol) |
 
+## Recent Developments (Mar 13)
+
+### Newsweek: "Crypto Has the Edge Right Now" (Mar 13)
+- OpenClaw mentioned by name — "tens of thousands of people are running OpenClaw instances"
+- Enterprise IT infrastructure "not designed for automated systems to spend money"
+- Gartner: 40% of agentic pilots at risk of being scrapped (ROI concerns)
+- No major company has authorized agents to spend money autonomously yet
+- Card networks + blockchain industry racing to build infrastructure before market matures
+- Key insight: "the battle to dominate a market is often won or lost long before the market reaches mainstream adoption"
+
+### Mastercard Crypto Partner Program (Mar 13)
+- Borderless.xyz joins 85+ companies (Binance, Circle, PayPal, Ripple, Fireblocks, Solana, Polygon)
+- Focus: cross-border transfers, B2B payments, global payouts using on-chain infra
+- Single API → 14+ licensed stablecoin providers, 94+ countries, 63+ fiat currencies
+- Validates stablecoin payment infrastructure becoming mainstream at network level
+
+### Forbes: "Stablecoins Will Power AI Agents Before They Power Humans" (Mar 13)
+- First large-scale stablecoin economy = machine-to-machine, not human consumer
+- Agent wallets + spending policies = the infrastructure being built now
+
 ## Strategic Priorities
-1. **Speed to PyPI**: SDK publishable → instant developer onboarding via 
+1. **Speed to PyPI**: SDK publishable → instant developer onboarding via `pip install agentpay`
 2. **First 10 users**: Dev community outreach (dev.to, Reddit, HN), Moltbook, X threads
-3. **LangChain/CrewAI tools**: Framework-native integrations → agents discover AgentPay automatically
+3. ~~**LangChain/CrewAI tools**~~: ✅ Done — `integrations/langchain/` + `integrations/crewai/`
 4. **npm SDK**: TypeScript SDK on npm → JS/Node.js developer capture
 5. **Product Hunt launch**: Time for maximum visibility once 10+ active users
