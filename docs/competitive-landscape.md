@@ -157,6 +157,19 @@
 - New block explorer for x402 payments — tens of thousands of users, modest monthly volume
 - Confirms market is real but early — validates our "build now, scale later" approach
 
+### Primer Systems on SKALE (Mar 11, 2026)
+- **What**: x402 micropayment infrastructure + agent manager for the "agentic economy"
+- **Products**: Primer Pay (x402 payment processing) + MultiClaw (desktop agent manager — Windows/macOS/Linux/USB)
+- **MultiClaw**: GUI for managing multiple AI agents' x402 spending permissions — approve/deny agent payments
+- **Chain**: SKALE (zero gas fees, EVM-compatible)
+- **Assessment**: Closest to our budget governance concept — MultiClaw does for desktop what AgentPay does via API/Telegram. Different distribution (desktop app vs API/bot), but same core thesis: agents need spending controls. Their zero-gas-fee approach via SKALE is interesting but limits chain reach. Our multi-chain (Base/Polygon/BNB/Solana) is broader.
+
+### Mastercard + Borderless.xyz Crypto Partner Program (Mar 13, 2026)
+- 85+ companies (Binance, Circle, PayPal, Ripple, Fireblocks, Solana, Polygon)
+- Borderless.xyz: single API → 14+ licensed stablecoin providers, 94+ countries, 63+ fiat currencies
+- Focus: cross-border B2B stablecoin payments at network level
+- Validates stablecoin infrastructure going mainstream
+
 ### Meta Acquired Moltbook (DL News, Mar 12)
 - Meta acquired Moltbook (social network for AI agents) — brought founders into Superintelligence team
 - We posted to 11 Moltbook communities for AgentPay — those communities may now have Meta eyeballs
