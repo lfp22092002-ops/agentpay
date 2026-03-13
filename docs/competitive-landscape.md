@@ -129,6 +129,14 @@
 4. ~~**npm SDK**~~: ✅ Done — `sdk-ts/` (ESM+CJS, zero deps, native fetch). Needs npm publish (G's account)
 5. **Product Hunt launch**: Time for maximum visibility once 10+ active users
 
+## New Entrants (Mar 12-13, 2026)
+
+### Razorpay Agent Studio (Mar 12)
+- **What**: "World's first Agent Studio for payments" — AI agents automate payment ops (failed tx recovery, dispute response, subscription management)
+- **Stack**: Built on Anthropic's Claude Agent SDK — agentic AI for enterprise payment automation
+- **Focus**: Business payment operations, NOT agent wallets/spending. Automates the merchant side.
+- **Assessment**: Different lane from AgentPay — they automate payment ops for businesses; we give agents wallets to spend. But signals that "AI + payments" is becoming a product category. Razorpay is massive in India (~$60B valuation), adding credibility to the space.
+
 ### WLFI USD1 Agentic Payments (Mar 12-13, 2026 — DL News update)
 - **Development**: WLFI confirmed devs "already developing AI Agents capable of making autonomous payments" using USD1 stablecoin
 - **Market context**: Stablecoin market nearing $315B (2x from 2022). US Treasury forecasts $3T by 2030; Citi projects $4T.
