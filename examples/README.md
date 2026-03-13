@@ -13,6 +13,9 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [multi_agent_budget.py](multi_agent_budget.py) | Fleet management — multiple agents with shared budgets |
 | [langchain_agent.py](langchain_agent.py) | LangChain agent with budget, spending, x402, and history tools |
 | [crewai_agent.py](crewai_agent.py) | CrewAI multi-agent crew with budget-aware research + writing |
+| [langgraph_agent.py](langgraph_agent.py) | LangGraph ReAct agent with conditional edges + budget control |
+| [openai_agents_sdk.py](openai_agents_sdk.py) | OpenAI Agents SDK with MCP server + function tools |
+| [autogen_agent.py](autogen_agent.py) | AutoGen agent with budget-aware tool registration |
 
 ## cURL / Any Language
 
