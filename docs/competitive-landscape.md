@@ -126,5 +126,5 @@
 1. **Speed to PyPI**: SDK publishable → instant developer onboarding via `pip install agentpay`
 2. **First 10 users**: Dev community outreach (dev.to, Reddit, HN), Moltbook, X threads
 3. ~~**LangChain/CrewAI tools**~~: ✅ Done — `integrations/langchain/` + `integrations/crewai/`
-4. **npm SDK**: TypeScript SDK on npm → JS/Node.js developer capture
+4. ~~**npm SDK**~~: ✅ Done — `sdk-ts/` (ESM+CJS, zero deps, native fetch). Needs npm publish (G's account)
 5. **Product Hunt launch**: Time for maximum visibility once 10+ active users
