@@ -21,16 +21,26 @@ tools = get_agentpay_tools(api_key="ap_xxxx...")
 agent = Agent(role="Buyer", tools=tools, goal="Purchase compute resources")
 ```
 
+## Smolagents (HuggingFace)
+
+```python
+from agentpay.integrations.smolagents import get_agentpay_tools
+from smolagents import CodeAgent, HfApiModel
+
+tools = get_agentpay_tools(api_key="ap_xxxx...")
+agent = CodeAgent(tools=tools, model=HfApiModel())
+```
+
 ## Available Tools
 
-| Tool | Description |
-|------|-------------|
-| `agentpay_balance` | Check wallet balance (USD, spent, received) |
-| `agentpay_spend` | Spend funds with description and category |
-| `agentpay_transfer` | Transfer USD to another agent |
-| `agentpay_transactions` | List recent transactions with filters |
-| `agentpay_x402_pay` | Pay for HTTP 402 resources (x402 protocol) |
-| `agentpay_identity` | Get agent identity and trust score (LangChain only) |
+| Tool | Description | Frameworks |
+|------|-------------|------------|
+| `agentpay_balance` | Check wallet balance (USD, spent, received) | All |
+| `agentpay_spend` | Spend funds with description and category | All |
+| `agentpay_transfer` | Transfer USD to another agent | All |
+| `agentpay_transactions` | List recent transactions with filters | All |
+| `agentpay_x402_pay` | Pay for HTTP 402 resources (x402 protocol) | All |
+| `agentpay_identity` | Get agent identity and trust score | LangChain |
 
 ## MCP Server
 
