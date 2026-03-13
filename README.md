@@ -198,7 +198,7 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 - [x] Dashboard API for analytics
 - [ ] Python SDK on PyPI (`pip install agentpay`)
 - [ ] TypeScript SDK on npm
-- [ ] LangChain / CrewAI native tool wrappers
+- [x] LangChain / CrewAI native tool wrappers
 - [ ] Virtual Visa cards via Lithic
 - [ ] Telegram Stars production payments
 - [ ] Dashboard UI (web frontend)
