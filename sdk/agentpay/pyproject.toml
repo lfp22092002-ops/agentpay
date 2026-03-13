@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentpay"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python SDK for AgentPay — payment infrastructure for AI agents"
 readme = "README.md"
 license = "MIT"
@@ -51,4 +51,4 @@ Repository = "https://github.com/lfp22092002-ops/agentpay"
 "Telegram Bot" = "https://t.me/FundmyAIbot"
 
 [tool.hatch.build.targets.wheel]
-packages = ["."]
+packages = ["agentpay"]
