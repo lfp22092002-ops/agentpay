@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AgentPay API",
     description="Payment API for AI agents. Let your bot spend money.",
-    version="0.1.0",
+    version="0.1.1",
     lifespan=lifespan,
 )
 
