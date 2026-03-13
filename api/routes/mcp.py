@@ -132,6 +132,16 @@ def _get_client(api_key: str | None = None) -> "AgentPayClient":
 
 def _handle_tool(name: str, args: dict, api_key: str | None = None) -> dict[str, Any]:
     """Execute an MCP tool call, returning the result dict."""
+    # Validate tool name before attempting client setup
+    known_tools = {
+        "agentpay_balance", "agentpay_spend", "agentpay_transactions",
+        "agentpay_refund", "agentpay_transfer", "agentpay_wallet",
+        "agentpay_chains", "agentpay_x402_pay", "agentpay_webhook",
+        "agentpay_identity",
+    }
+    if name not in known_tools:
+        raise ValueError(f"Unknown tool: {name}")
+
     client = _get_client(api_key)
 
     if name == "agentpay_balance":
