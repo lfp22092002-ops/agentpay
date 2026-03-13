@@ -128,3 +128,27 @@
 3. ~~**LangChain/CrewAI tools**~~: ✅ Done — `integrations/langchain/` + `integrations/crewai/`
 4. ~~**npm SDK**~~: ✅ Done — `sdk-ts/` (ESM+CJS, zero deps, native fetch). Needs npm publish (G's account)
 5. **Product Hunt launch**: Time for maximum visibility once 10+ active users
+
+### WLFI USD1 Agentic Payments (Mar 12-13, 2026 — DL News update)
+- **Development**: WLFI confirmed devs "already developing AI Agents capable of making autonomous payments" using USD1 stablecoin
+- **Market context**: Stablecoin market nearing $315B (2x from 2022). US Treasury forecasts $3T by 2030; Citi projects $4T.
+- **USD1**: Now 5th largest stablecoin. Aim to be the base currency for machine-to-machine transactions.
+- **Assessment**: Political headwind for neutral protocols. AgentPay is chain-agnostic — could integrate USD1 alongside USDC if it gains traction.
+
+### Bitcoin/Lightning for Agent Payments (Mar 13, 2026 — Bitcoin Magazine)
+- **Thesis**: Bitcoin has a "golden opportunity" — all agent payment standards are new, no one owns the market
+- **Lightning**: Surpassed $1B monthly transactions; Square enabled Lightning for in-person merchants
+- **Assessment**: Lightning could become an alternative rail for agent micropayments. We should monitor but USDC/stablecoins have more enterprise traction right now.
+
+### CZ Quote (Mar 9, 2026)
+- "AI agents will make 1 million times more payments than humans, and they will use crypto."
+- Beep protocol on Sui Network rolled out USDsui (Stripe-backed) support
+- CZ's framing: agents create massive payment volume → crypto is the only rail that scales
+
+### x402scan.com
+- New block explorer for x402 payments — tens of thousands of users, modest monthly volume
+- Confirms market is real but early — validates our "build now, scale later" approach
+
+### Meta Acquired Moltbook (DL News, Mar 12)
+- Meta acquired Moltbook (social network for AI agents) — brought founders into Superintelligence team
+- We posted to 11 Moltbook communities for AgentPay — those communities may now have Meta eyeballs
