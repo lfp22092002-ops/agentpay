@@ -17,18 +17,20 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [openai_agents_sdk.py](openai_agents_sdk.py) | OpenAI Agents SDK with MCP server + function tools |
 | [autogen_agent.py](autogen_agent.py) | AutoGen agent with budget-aware tool registration |
 | [pydantic_ai_agent.py](pydantic_ai_agent.py) | Pydantic AI agent with type-safe budget governance |
-
-## cURL / Any Language
-
-| Example | Description |
-|---------|-------------|
-| [curl_examples.sh](curl_examples.sh) | All key endpoints — balance, spend, transfer, webhooks, x402 |
+| [smolagents_agent.py](smolagents_agent.py) | HuggingFace Smolagents with code-first budget tools |
 
 ## TypeScript / Node.js
 
 | Example | Description |
 |---------|-------------|
 | [basic_usage.ts](basic_usage.ts) | Balance, spend, transactions, refund (TS SDK) |
+| [vercel_ai_agent.ts](vercel_ai_agent.ts) | Vercel AI SDK agent with Zod-typed payment tools |
+
+## cURL / Any Language
+
+| Example | Description |
+|---------|-------------|
+| [curl_examples.sh](curl_examples.sh) | All key endpoints — balance, spend, transfer, webhooks, x402 |
 
 ## Setup
 
