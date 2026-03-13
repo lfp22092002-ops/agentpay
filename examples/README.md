@@ -12,6 +12,7 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [x402_agent.py](x402_agent.py) | Autonomous x402 micropayments — agent pays for gated APIs |
 | [multi_agent_budget.py](multi_agent_budget.py) | Fleet management — multiple agents with shared budgets |
 | [langchain_agent.py](langchain_agent.py) | LangChain agent with budget, spending, x402, and history tools |
+| [crewai_agent.py](crewai_agent.py) | CrewAI multi-agent crew with budget-aware research + writing |
 
 ## cURL / Any Language
 
