@@ -189,7 +189,7 @@ def _async_client(routes: dict) -> AgentPayAsyncClient:
 
 class TestSyncClientInit:
     def test_version_exists(self):
-        assert __version__ == "0.1.0"
+        assert __version__ == "0.1.1"
 
     def test_default_base_url(self):
         client = AgentPayClient("ap_key")
