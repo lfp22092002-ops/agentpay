@@ -16,6 +16,7 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [langgraph_agent.py](langgraph_agent.py) | LangGraph ReAct agent with conditional edges + budget control |
 | [openai_agents_sdk.py](openai_agents_sdk.py) | OpenAI Agents SDK with MCP server + function tools |
 | [autogen_agent.py](autogen_agent.py) | AutoGen agent with budget-aware tool registration |
+| [pydantic_ai_agent.py](pydantic_ai_agent.py) | Pydantic AI agent with type-safe budget governance |
 
 ## cURL / Any Language
 
