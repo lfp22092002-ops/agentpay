@@ -48,10 +48,27 @@
 - Bitget/BingX: Agent Hub + AI Skills Hub
 - **Relationship**: They're execution venues; we're the payment/wallet layer
 
+## Emerging Standards
+
+### ERC-8183 (Job Escrow Primitive — Mar 9, 2026)
+- **Authors**: Virtuals Protocol + dAI (Ethereum Foundation)
+- **Purpose**: Trustless agent-to-agent conditional payments via on-chain escrow
+- **How it works**: Agent creates job request → locks funds in escrow contract → released on task completion
+- **Stack fit**: x402 (micropayments) + ERC-8004 (trust/identity) + ERC-8183 (conditional payments) = full agent commerce stack
+- **Features**: Modular hooks for custom logic, universal job primitive, no intermediary needed
+- **Relevance to AgentPay**: Our transfer + approval workflow is a centralized version of this pattern. Could integrate ERC-8183 for on-chain escrow as an advanced feature. The three-layer stack (x402 + 8004 + 8183) is becoming the de facto Ethereum agent commerce standard.
+
+### OpenAI Pulls Back on Agentic Commerce (Mar 12, 2026)
+- **What happened**: OpenAI killed Instant Checkout in ChatGPT — merchants must now redirect to their own websites or build ChatGPT apps
+- **Context**: Shopify partnership saw only ~30 merchants live with native checkout despite millions on platform
+- **Forrester's take**: "Agentic commerce" is still experimental; only 23-35% of US adults have used ChatGPT for product search (varies by generation)
+- **For AgentPay**: Validates that consumer-facing agentic commerce is too early, but developer/API agentic payments (our lane) are a different beast — agents paying for compute/data/APIs is real NOW ($1.6M/month genuine volume)
+
 ## x402 Ecosystem Growth
 - **Chains**: Base, Solana, Polygon, Stellar, Etherlink (Tezos), Algorand, TRON (planned)
 - **Integrations**: Stripe, Cloudflare, Vercel, Google AP2
 - **Developer adoption**: Indie devs building 402 paywalled APIs (Express.js middleware, ~15 lines)
+- **Bloomberg (Mar 7)**: "Stablecoin firms bet big on AI agent payments that barely exist" — Circle + Stripe racing to build for future volume; Visa/MC stock dropped on Citrini Research scenario of agents routing around card fees
 
 ## AgentPay Positioning
 
