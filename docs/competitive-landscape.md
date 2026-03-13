@@ -21,9 +21,10 @@
 - **Scale**: 500+ enterprise customers, 30M+ users, full US money transmitter licenses
 - **Model**: One-time human KYC → autonomous agent operations
 - **Status**: Live (launched Mar 2026), also building PYUSDx stablecoin issuance
-- **Strengths**: Massive distribution, regulatory moat (BitLicense, MiCA), fiat-to-crypto rails
-- **Weaknesses**: Enterprise pricing/complexity, custodial feel, no bot-native UX
-- **Our differentiation**: Open source, free tier, Telegram bot-native, developer-first API
+- **Ledger signer integration (Mar 13)**: First CLI wallet with hardware signer for AI agents — private keys never leave Ledger device, agent executes but human signs. Supports Ethereum, Solana, Base, Arbitrum, Polygon, Optimism, BNB, Avalanche. Automatic Ledger app switching across chains.
+- **Strengths**: Massive distribution, regulatory moat (BitLicense, MiCA), fiat-to-crypto rails, now hardware security via Ledger
+- **Weaknesses**: Enterprise pricing/complexity, human-in-loop signing (by design), no bot-native UX
+- **Our differentiation**: Open source, free tier, Telegram bot-native, developer-first API, fully autonomous (no hardware required)
 
 ## Infrastructure Players (Not Direct Competitors)
 
