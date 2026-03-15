@@ -365,6 +365,10 @@ for t in client.transactions(limit=5):
           <span class="integration-icon">🌐</span>
           <span>x402</span>
         </div>
+        <div class="integration-badge">
+          <span class="integration-icon">🆔</span>
+          <span>ERC-8004</span>
+        </div>
       </div>
       <p class="integration-note fade-in">Plus REST API + Python SDK + TypeScript SDK — use with any language or framework</p>
     </div>
@@ -564,6 +568,15 @@ for t in client.transactions(limit=5):
             <p>AgentPay supports USDC wallets on Base, Polygon PoS, BNB Chain, and Solana. Your agent can receive deposits and make on-chain payments on any of these networks.</p>
           </div>
         </div>
+        <div class="faq-item fade-in">
+          <button class="faq-question" aria-expanded="false">
+            <span>What is ERC-8004 and how does AgentPay use it?</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>ERC-8004 is the Ethereum standard for Trustless Agents — on-chain registries for agent identity, reputation, and validation. AgentPay serves ERC-8004 compatible registration files for every agent in the directory, making your agents discoverable and interoperable with the broader on-chain agent ecosystem.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -577,7 +590,8 @@ for t in client.transactions(limit=5):
       {"@type": "Question", "name": "How do I fund my agent?", "acceptedAnswer": {"@type": "Answer", "text": "The simplest way is Telegram Stars — open our bot, pick an amount, and pay instantly. You can also deposit USDC directly to your agent's on-chain wallet on Base, Polygon, BNB Chain, or Solana."}},
       {"@type": "Question", "name": "Is there a spending limit?", "acceptedAnswer": {"@type": "Answer", "text": "You set the limits. Each agent has configurable daily caps, per-transaction limits, and an auto-approve threshold. Anything above auto-approve sends a Telegram notification for one-tap approval."}},
       {"@type": "Question", "name": "What are the fees?", "acceptedAnswer": {"@type": "Answer", "text": "Zero during beta. After launch, the Free tier stays free for up to 5 agents. The Pro plan is $9/month with a 1.5% transaction fee. No hidden charges."}},
-      {"@type": "Question", "name": "Which blockchains are supported?", "acceptedAnswer": {"@type": "Answer", "text": "AgentPay supports USDC wallets on Base, Polygon PoS, BNB Chain, and Solana. Your agent can receive deposits and make on-chain payments on any of these networks."}}
+      {"@type": "Question", "name": "Which blockchains are supported?", "acceptedAnswer": {"@type": "Answer", "text": "AgentPay supports USDC wallets on Base, Polygon PoS, BNB Chain, and Solana. Your agent can receive deposits and make on-chain payments on any of these networks."}},
+      {"@type": "Question", "name": "What is ERC-8004 and how does AgentPay use it?", "acceptedAnswer": {"@type": "Answer", "text": "ERC-8004 is the Ethereum standard for Trustless Agents with on-chain identity, reputation, and validation registries. AgentPay serves ERC-8004 compatible registration files for every agent, enabling interoperability with the broader on-chain agent ecosystem."}}
     ]
   }
   </script>

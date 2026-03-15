@@ -80,6 +80,7 @@ curl -X POST https://leofundmybot.dev/v1/spend \
 - 📊 Trust score based on: account age, tx count, volume, profile, verified badge
 - 📂 Public agent directory with category filtering
 - ✅ Verified agent badges
+- 🆔 ERC-8004 compatible registration files (Trustless Agents standard)
 
 **Security**
 - 🔐 SHA-256 hashed API keys (Stripe-style — shown once, never stored)
