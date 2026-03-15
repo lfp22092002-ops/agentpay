@@ -16,8 +16,8 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 # API
-API_SECRET = os.getenv("API_SECRET", "agentpay-secret-change-me")
-if API_SECRET == "agentpay-secret-change-me" and ENVIRONMENT == "production":
+API_SECRET = os.getenv("API_SECRET", "agentpay-secret-change-me-32bytes!")
+if API_SECRET.startswith("agentpay-secret-change-me") and ENVIRONMENT == "production":
     import warnings
     warnings.warn("⚠️ CRITICAL: Using default API_SECRET in production! Set API_SECRET in .env", stacklevel=2)
 API_HOST = os.getenv("API_HOST", "0.0.0.0")

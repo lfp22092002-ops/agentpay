@@ -1,4 +1,4 @@
-"""AgentPay SDK exceptions."""
+"""AgentPay SDK exceptions and utilities."""
 
 from __future__ import annotations
 
@@ -36,3 +36,46 @@ class RateLimitError(AgentPayError):
 
     def __init__(self, detail: str = "Rate limit exceeded") -> None:
         super().__init__(429, detail)
+
+
+# ------------------------------------------------------------------
+# Webhook signature verification
+# ------------------------------------------------------------------
+
+
+def verify_webhook_signature(
+    payload: str | bytes,
+    signature: str,
+    secret: str,
+) -> bool:
+    """Verify that a webhook payload was signed by AgentPay.
+
+    Use this in your webhook receiver to ensure the request is authentic.
+
+    Args:
+        payload: The raw request body (string or bytes).
+        signature: Value of the ``X-AgentPay-Signature`` header.
+        secret: Your webhook signing secret (``whsec_…``).
+
+    Returns:
+        ``True`` if the signature is valid.
+
+    Example::
+
+        from agentpay import verify_webhook_signature
+
+        @app.post("/webhook")
+        async def handle(request: Request):
+            body = await request.body()
+            sig = request.headers["X-AgentPay-Signature"]
+            if not verify_webhook_signature(body, sig, WEBHOOK_SECRET):
+                raise HTTPException(401, "Bad signature")
+            ...
+    """
+    import hashlib
+    import hmac as _hmac
+
+    if isinstance(payload, str):
+        payload = payload.encode()
+    expected = _hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+    return _hmac.compare_digest(expected, signature)

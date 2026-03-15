@@ -12,18 +12,25 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [x402_agent.py](x402_agent.py) | Autonomous x402 micropayments — agent pays for gated APIs |
 | [multi_agent_budget.py](multi_agent_budget.py) | Fleet management — multiple agents with shared budgets |
 | [langchain_agent.py](langchain_agent.py) | LangChain agent with budget, spending, x402, and history tools |
-
-## cURL / Any Language
-
-| Example | Description |
-|---------|-------------|
-| [curl_examples.sh](curl_examples.sh) | All key endpoints — balance, spend, transfer, webhooks, x402 |
+| [crewai_agent.py](crewai_agent.py) | CrewAI multi-agent crew with budget-aware research + writing |
+| [langgraph_agent.py](langgraph_agent.py) | LangGraph ReAct agent with conditional edges + budget control |
+| [openai_agents_sdk.py](openai_agents_sdk.py) | OpenAI Agents SDK with MCP server + function tools |
+| [autogen_agent.py](autogen_agent.py) | AutoGen agent with budget-aware tool registration |
+| [pydantic_ai_agent.py](pydantic_ai_agent.py) | Pydantic AI agent with type-safe budget governance |
+| [smolagents_agent.py](smolagents_agent.py) | HuggingFace Smolagents with code-first budget tools |
 
 ## TypeScript / Node.js
 
 | Example | Description |
 |---------|-------------|
 | [basic_usage.ts](basic_usage.ts) | Balance, spend, transactions, refund (TS SDK) |
+| [vercel_ai_agent.ts](vercel_ai_agent.ts) | Vercel AI SDK agent with Zod-typed payment tools |
+
+## cURL / Any Language
+
+| Example | Description |
+|---------|-------------|
+| [curl_examples.sh](curl_examples.sh) | All key endpoints — balance, spend, transfer, webhooks, x402 |
 
 ## Setup
 
