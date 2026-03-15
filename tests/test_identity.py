@@ -324,3 +324,98 @@ class TestDirectory:
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             resp = await client.get("/v1/directory/nonexistent-id-12345")
             assert resp.status_code == 404
+
+    # ═══════════════════════════════════════
+    # ERC-8004 REGISTRATION
+    # ═══════════════════════════════════════
+
+    @pytest.mark.asyncio
+    async def test_erc8004_registration(self, identity_app):
+        """GET directory/{agent_id}/registration.json returns ERC-8004 format."""
+        app, api_key, agent = identity_app
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # First create an identity (use direct DB to avoid rate limits)
+            from models.database import get_db
+            override_db = app.dependency_overrides[get_db]
+            async for db in override_db():
+                from models.schema import AgentIdentity
+                from datetime import datetime, timezone
+                now = datetime.now(timezone.utc)
+                identity = AgentIdentity(
+                    agent_id=agent.id,
+                    display_name="ERC8004 Agent",
+                    description="A test agent for ERC-8004",
+                    homepage_url="https://example.com",
+                    category="assistant",
+                    first_seen=now,
+                    last_active=now,
+                )
+                db.add(identity)
+                await db.commit()
+                break
+
+            resp = await client.get(f"/v1/directory/{agent.id}/registration.json")
+            assert resp.status_code == 200
+            data = resp.json()
+
+            # Verify ERC-8004 format
+            assert data["type"] == "https://eips.ethereum.org/EIPS/eip-8004#registration-v1"
+            assert data["name"] == "ERC8004 Agent"
+            assert data["description"] == "A test agent for ERC-8004"
+            assert data["url"] == "https://example.com"
+            assert "capabilities" in data
+            assert "payment" in data["capabilities"]
+            assert "extensions" in data
+            assert "agentpay" in data["extensions"]
+            assert data["extensions"]["agentpay"]["category"] == "assistant"
+            assert data["extensions"]["agentpay"]["trust_score"] >= 0
+
+    @pytest.mark.asyncio
+    async def test_erc8004_registration_not_found(self, identity_app):
+        """GET directory/{agent_id}/registration.json with bad ID returns 404."""
+        app, _, _ = identity_app
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/v1/directory/nonexistent/registration.json")
+            assert resp.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_erc8004_registration_minimal(self, identity_app):
+        """GET registration.json returns valid data with minimal identity."""
+        app, api_key, agent = identity_app
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # Create identity with minimal fields via DB
+            from models.database import get_db
+            override_db = app.dependency_overrides[get_db]
+            async for db in override_db():
+                from models.schema import AgentIdentity
+                from datetime import datetime, timezone
+                from sqlalchemy import select
+                # Check if identity already exists from previous test
+                result = await db.execute(select(AgentIdentity).where(AgentIdentity.agent_id == agent.id))
+                existing = result.scalar_one_or_none()
+                if existing:
+                    existing.display_name = "Minimal"
+                    existing.description = None
+                    existing.logo_url = None
+                    await db.commit()
+                else:
+                    now = datetime.now(timezone.utc)
+                    identity = AgentIdentity(
+                        agent_id=agent.id,
+                        display_name="Minimal",
+                        first_seen=now,
+                        last_active=now,
+                    )
+                    db.add(identity)
+                    await db.commit()
+                break
+
+            resp = await client.get(f"/v1/directory/{agent.id}/registration.json")
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["type"] == "https://eips.ethereum.org/EIPS/eip-8004#registration-v1"
+            assert data["name"] == "Minimal"
+            assert "logo" not in data  # No logo_url set

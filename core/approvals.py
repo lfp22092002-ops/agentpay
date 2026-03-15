@@ -67,11 +67,14 @@ async def request_approval(
 
     # Auto-deny after timeout
     async def _timeout():
-        await asyncio.sleep(APPROVAL_TIMEOUT_SECONDS)
-        if not approval.resolved:
-            resolve_approval(approval_id, approved=False, reason="Timed out (5 min)")
+        try:
+            await asyncio.sleep(APPROVAL_TIMEOUT_SECONDS)
+            if not approval.resolved:
+                resolve_approval(approval_id, approved=False, reason="Timed out (5 min)")
+        except asyncio.CancelledError:
+            pass
 
-    asyncio.create_task(_timeout())
+    approval._timeout_task = asyncio.create_task(_timeout())
 
     logger.info(f"Approval requested: {approval_id} — ${amount_usd} for {agent_name}")
     return approval
@@ -84,6 +87,11 @@ def resolve_approval(approval_id: str, approved: bool, reason: str | None = None
         return False
 
     approval.resolved = True
+
+    # Cancel the timeout task if it's still running
+    timeout_task = getattr(approval, '_timeout_task', None)
+    if timeout_task and not timeout_task.done():
+        timeout_task.cancel()
 
     result = {
         "approved": approved,

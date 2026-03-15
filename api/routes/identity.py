@@ -293,3 +293,63 @@ async def agent_public_profile(
         last_active=identity.last_active.isoformat(),
         metadata_json=identity.metadata_json,
     ).model_dump()
+
+
+# ═══════════════════════════════════════
+# ERC-8004 COMPATIBILITY
+# ═══════════════════════════════════════
+
+@router.get("/directory/{agent_id}/registration.json")
+@limiter.limit("60/minute")
+async def erc8004_registration(
+    agent_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """ERC-8004 compatible registration file for an agent.
+
+    Returns the agent's identity in the ERC-8004 Trustless Agents format,
+    enabling interoperability with on-chain agent discovery and reputation systems.
+    See: https://eips.ethereum.org/EIPS/eip-8004
+    """
+    result = await db.execute(select(AgentIdentity).where(AgentIdentity.agent_id == agent_id))
+    identity = result.scalar_one_or_none()
+    if not identity:
+        raise HTTPException(404, "Agent not found in directory")
+
+    # Build capabilities list from agent activity
+    capabilities = ["payment", "balance-check", "transaction-history"]
+    if identity.total_transactions > 0:
+        capabilities.append("spend")
+    if identity.metadata_json:
+        meta = identity.metadata_json if isinstance(identity.metadata_json, dict) else {}
+        if meta.get("webhooks_enabled"):
+            capabilities.append("webhooks")
+        if meta.get("x402_enabled"):
+            capabilities.append("x402-micropayments")
+
+    # ERC-8004 registration file format
+    registration = {
+        "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+        "name": identity.display_name or f"agent-{agent_id[:8]}",
+        "description": identity.description or "An AI agent powered by AgentPay",
+        "url": identity.homepage_url or f"https://leofundmybot.dev/directory/{agent_id}",
+        "capabilities": capabilities,
+        "extensions": {
+            "agentpay": {
+                "trust_score": identity.trust_score,
+                "verified": identity.verified,
+                "category": identity.category,
+                "total_transactions": identity.total_transactions,
+                "total_volume_usd": float(identity.total_volume_usd),
+                "first_seen": identity.first_seen.isoformat() if identity.first_seen else None,
+                "last_active": identity.last_active.isoformat() if identity.last_active else None,
+                "api_base": "https://leofundmybot.dev/v1",
+            }
+        },
+    }
+
+    if identity.logo_url:
+        registration["logo"] = identity.logo_url
+
+    return registration
