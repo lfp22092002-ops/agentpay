@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite://")
 os.environ.setdefault("BOT_TOKEN", "")
-os.environ.setdefault("API_SECRET", "test-secret-key-for-tests")
+os.environ.setdefault("API_SECRET", "test-secret-key-for-tests-minimum-32-bytes-long")
 
 from models.database import Base
 from models.schema import User, Agent

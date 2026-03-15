@@ -2,6 +2,28 @@
 
 All notable changes to AgentPay will be documented in this file.
 
+## [0.1.1] — 2026-03-12
+
+### Added
+- **TypeScript SDK**: Full-featured client with 5 error classes (`sdk/ts/`)
+- **TypeScript SDK Tests**: 29 tests covering all methods + error handling (vitest)
+- **MCP Streamable HTTP**: `/mcp` endpoint with session management (`Mcp-Session-Id`)
+- **MCP Session Lifecycle**: Create, validate, expire (TTL), delete sessions per spec
+- **MCP Directory Submissions**: mcp.so (#782), Cline MCP Marketplace (#867) — submitted
+- **MCP Discovery Artifacts**: `smithery.yaml`, LobeHub plugin config, `.well-known/mcp/server-card.json`
+- **GitHub Issue Templates**: Bug report + feature request templates
+- **CODE_OF_CONDUCT.md**: Contributor Covenant 2.1
+- **11 MCP session tests** (`test_mcp_sessions.py`)
+- **19 miniapp auth coverage tests** (`test_miniapp_auth_coverage.py`)
+
+### Fixed
+- MCP `protocolVersion` updated from `2024-11-05` to `2025-11-25` (latest spec)
+- README + dev.to article: aligned SDK code examples with actual method signatures
+- Python SDK README: `get_wallets()` → `get_wallet(chain=)`, `set_webhook()` → `register_webhook()`
+
+### Stats
+- **621 tests** (592 Python + 29 TypeScript), 2 skipped
+
 ## [0.1.0] — 2026-03-09
 
 ### Added

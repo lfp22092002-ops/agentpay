@@ -24,6 +24,7 @@ from .exceptions import (
     AuthenticationError,
     InsufficientBalanceError,
     RateLimitError,
+    verify_webhook_signature,
 )
 from .models import (
     Balance,
@@ -37,7 +38,7 @@ from .models import (
     X402Response,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 # Convenience alias — many examples use `AgentPay` as shorthand
 AgentPay = AgentPayClient
@@ -50,6 +51,7 @@ __all__ = [
     "AuthenticationError",
     "InsufficientBalanceError",
     "RateLimitError",
+    "verify_webhook_signature",
     "Balance",
     "Chain",
     "RefundResponse",

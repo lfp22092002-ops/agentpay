@@ -11,3 +11,4 @@ wallets/
 sdk/dist/
 *.bak.*
 .coverage
+sdk-ts/node_modules/
