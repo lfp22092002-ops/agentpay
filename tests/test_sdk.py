@@ -173,6 +173,7 @@ def _async_client(routes: dict) -> AgentPayAsyncClient:
     client = AgentPayAsyncClient.__new__(AgentPayAsyncClient)
     client._api_key = "ap_test_key"
     client._base_url = "https://test.local"
+    client._max_retries = 3
     client._client = httpx.AsyncClient(
         base_url="https://test.local",
         headers={"X-API-Key": "ap_test_key"},
@@ -188,7 +189,7 @@ def _async_client(routes: dict) -> AgentPayAsyncClient:
 
 class TestSyncClientInit:
     def test_version_exists(self):
-        assert __version__ == "0.1.0"
+        assert __version__ == "0.1.1"
 
     def test_default_base_url(self):
         client = AgentPayClient("ap_key")
