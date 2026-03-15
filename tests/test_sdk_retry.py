@@ -7,7 +7,8 @@ Covers: transient 429/5xx retries, Retry-After header, non-retryable fast-fail,
 import pytest
 import httpx
 
-import sys, os
+import sys
+import os
 SDK_DIR = os.path.join(os.path.dirname(__file__), "..", "sdk")
 sys.path.insert(0, SDK_DIR)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +25,6 @@ from agentpay import (
     AgentPayAsyncClient,
     AgentPayError,
     AuthenticationError,
-    InsufficientBalanceError,
     RateLimitError,
 )
 

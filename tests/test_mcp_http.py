@@ -7,7 +7,6 @@ import sys
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
-from unittest.mock import patch, MagicMock
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
@@ -193,5 +192,5 @@ class TestMCPSSE:
         )
         assert resp.status_code == 200
         assert "text/event-stream" in resp.headers.get("content-type", "")
-        lines = [l for l in resp.text.strip().split("\n") if l.startswith("data: ")]
+        lines = [line for line in resp.text.strip().split("\n") if line.startswith("data: ")]
         assert len(lines) == 2

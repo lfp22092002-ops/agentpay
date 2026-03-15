@@ -9,7 +9,6 @@ import os
 import sys
 from io import StringIO
 from unittest.mock import patch, MagicMock
-from types import SimpleNamespace
 
 import pytest
 

@@ -8,11 +8,9 @@ Covers:
 - DELETE /mcp session termination
 - Session header propagation in responses
 """
-import json
 import os
 import sys
 import time
-from unittest.mock import patch
 
 import pytest
 import pytest_asyncio

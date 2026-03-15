@@ -7,7 +7,7 @@ Requires: pip install crewai agentpay
 
 from __future__ import annotations
 
-from typing import Any, List, Optional, Type
+from typing import List, Optional, Type
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field

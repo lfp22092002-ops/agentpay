@@ -16,7 +16,7 @@ import sys
 import time
 from decimal import Decimal
 from datetime import datetime, timezone, timedelta
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 import pytest
@@ -30,7 +30,7 @@ sys.path.insert(0, PROJECT_ROOT)
 from models.database import Base
 from models.schema import (
     User, Agent, Transaction, TransactionType, TransactionStatus,
-    PaymentMethod, Wallet,
+    PaymentMethod,
 )
 from core.wallet import hash_api_key
 import jwt as pyjwt

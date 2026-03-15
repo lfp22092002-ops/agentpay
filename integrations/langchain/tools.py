@@ -8,7 +8,7 @@ Requires: pip install langchain-core agentpay
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, List, Optional, Type
 
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
