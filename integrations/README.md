@@ -41,6 +41,18 @@ tools = get_agentpay_tools(api_key="ap_xxxx...")
 agent = Agent(name="buyer", model="gemini-2.0-flash", tools=tools)
 ```
 
+## Microsoft Agent Framework
+
+```python
+from integrations.microsoft_agent_framework import get_agentpay_tools
+from agent_framework.openai import OpenAIResponsesClient
+
+tools = get_agentpay_tools(api_key="ap_xxxx...")
+agent = OpenAIResponsesClient().as_agent(
+    name="buyer", instructions="Budget-aware assistant.", tools=tools
+)
+```
+
 ## Available Tools
 
 | Tool | Description | Frameworks |
