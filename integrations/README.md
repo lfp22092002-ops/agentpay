@@ -31,6 +31,16 @@ tools = get_agentpay_tools(api_key="ap_xxxx...")
 agent = CodeAgent(tools=tools, model=HfApiModel())
 ```
 
+## Google ADK (Agent Development Kit)
+
+```python
+from integrations.google_adk import get_agentpay_tools
+from google.adk.agents import Agent
+
+tools = get_agentpay_tools(api_key="ap_xxxx...")
+agent = Agent(name="buyer", model="gemini-2.0-flash", tools=tools)
+```
+
 ## Available Tools
 
 | Tool | Description | Frameworks |

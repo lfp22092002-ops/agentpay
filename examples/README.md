@@ -18,6 +18,7 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [autogen_agent.py](autogen_agent.py) | AutoGen agent with budget-aware tool registration |
 | [pydantic_ai_agent.py](pydantic_ai_agent.py) | Pydantic AI agent with type-safe budget governance |
 | [smolagents_agent.py](smolagents_agent.py) | HuggingFace Smolagents with code-first budget tools |
+| [google_adk_agent.py](google_adk_agent.py) | Google ADK (Agent Development Kit) with budget tools |
 
 ## TypeScript / Node.js
 
