@@ -173,3 +173,32 @@
 ### Meta Acquired Moltbook (DL News, Mar 12)
 - Meta acquired Moltbook (social network for AI agents) — brought founders into Superintelligence team
 - We posted to 11 Moltbook communities for AgentPay — those communities may now have Meta eyeballs
+
+## New Entrants (Mar 13-15, 2026)
+
+### J.P. Morgan Payments + Mirakl (Mar 10)
+- **What**: "Agentic Commerce at Enterprise Scale" — JPM payment infra + Mirakl Nexus commerce AI
+- **Stack**: Tokenization, fraud protection, agent identity, user-controlled permissions
+- **JPM Quote**: "The differentiator won't be AI — it will be governance: identity, consent, limits"
+- **Assessment**: JPM is validating governance-as-product thesis. Enterprise marketplace focus, not indie devs.
+
+### Stellar x402 Support (Mar 10)
+- **What**: Stellar added x402 — AI agents pay for APIs via stablecoin micropayments
+- **Impact**: x402 now multi-chain (Base + Stellar). Protocol expanding reach.
+- **Assessment**: More chains = more demand for multi-chain agent wallets (our architecture).
+
+### Messari x402 Data Access (Mar 13)
+- **What**: Messari selling research data via x402 micropayments
+- **Metrics**: x402 volume up 700%+, avg tx size dropped from $2.50 → $0.06
+- **Assessment**: First major data provider behind x402 paywall. Proves micropayment model for premium content.
+
+### Crypto.com Research: "Rise of the Autonomous Wallet" (Mar 9)
+- **What**: Comprehensive report on ERC-8004 + x402 + EIP-7702 convergence
+- **Key thesis**: Agent performance histories becoming tradable assets; crypto structurally superior to TradFi for agentic economies
+- **Assessment**: Our KYA trust scores align with ERC-8004 Identity+Reputation registries. Consider ERC-8004 compatibility.
+
+### Coinbase x402: 50M+ Transactions (FinTech Weekly, Mar 10)
+- Coinbase x402 crossed 50M cumulative transactions
+- Armstrong + CZ both predict agents will outnumber humans in transaction volume
+- Nvidia launching NemoClaw (enterprise OpenClaw) adds enterprise agent demand
+- **Assessment**: Real traction at protocol level. AgentPay benefits from both crypto adoption and category validation.
