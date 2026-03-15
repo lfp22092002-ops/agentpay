@@ -10,6 +10,7 @@ AgentPay gives AI agents their own wallets. Fund via Telegram Stars or USDC, set
 - Agent-to-agent transfers
 - x402 protocol support (HTTP-native micropayments)
 - KYA (Know Your Agent) identity with trust scores
+- ERC-8004 Trustless Agents compatibility (agent registration files)
 - Budget governance and approval workflows
 - Webhooks (HMAC-SHA256 signed)
 - Python SDK (`pip install agentpay`) and TypeScript SDK (`npm install agentpay`)
