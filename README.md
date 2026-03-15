@@ -206,7 +206,7 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 - [ ] Telegram Stars production payments
 - [ ] ERC-8004 on-chain registration (Phase 2)
 - [ ] Dashboard UI (web frontend)
-- [ ] Payee whitelists
+- [x] Payee whitelists (allow/deny rules with per-payee caps)
 - [ ] Google AP2 + Stripe Agentic Commerce compatibility
 - [ ] x402 facilitator mode (settle payments for other agents)
 
