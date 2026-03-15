@@ -33,4 +33,6 @@ AgentPay gives AI agents their own wallets. Fund via Telegram Stars or USDC, set
 - GitHub: https://github.com/lfp22092002-ops/agentpay
 - Website: https://leofundmybot.dev
 - Telegram Bot: https://t.me/FundmyAIbot
+- Security Model: https://github.com/lfp22092002-ops/agentpay/blob/main/docs/security-model.md
+- ERC-8004 Discovery: https://leofundmybot.dev/.well-known/erc-8004.json
 - License: MIT
