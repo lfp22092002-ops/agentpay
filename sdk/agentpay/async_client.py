@@ -309,6 +309,46 @@ class AgentPayAsyncClient:
         return await self._request("GET", "/v1/agent/identity/score")
 
     # ------------------------------------------------------------------
+    # Payee Rules
+    # ------------------------------------------------------------------
+
+    async def list_payee_rules(self) -> Dict[str, Any]:
+        """List all payee rules for this agent."""
+        return await self._request("GET", "/v1/agent/payee-rules")
+
+    async def create_payee_rule(
+        self,
+        payee_type: str,
+        payee_value: str,
+        rule_type: str = "allow",
+        max_amount_usd: Optional[float] = None,
+        note: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Create a payee allow/deny rule.
+
+        Args:
+            payee_type: One of 'agent_id', 'domain', 'category', 'address'.
+            payee_value: The payee identifier to match.
+            rule_type: 'allow' or 'deny' (default: 'allow').
+            max_amount_usd: Per-payee transaction cap (optional).
+            note: Optional human-readable note.
+        """
+        payload: Dict[str, Any] = {
+            "rule_type": rule_type,
+            "payee_type": payee_type,
+            "payee_value": payee_value,
+        }
+        if max_amount_usd is not None:
+            payload["max_amount_usd"] = max_amount_usd
+        if note is not None:
+            payload["note"] = note
+        return await self._request("POST", "/v1/agent/payee-rules", json=payload)
+
+    async def delete_payee_rule(self, rule_id: str) -> Dict[str, Any]:
+        """Delete (deactivate) a payee rule."""
+        return await self._request("DELETE", f"/v1/agent/payee-rules/{rule_id}")
+
+    # ------------------------------------------------------------------
     # Cleanup
     # ------------------------------------------------------------------
 

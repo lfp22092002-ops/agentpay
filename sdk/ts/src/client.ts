@@ -5,6 +5,8 @@ import type {
   AgentIdentity,
   Balance,
   Chain,
+  PayeeRule,
+  PayeeRulesResponse,
   RefundResponse,
   SpendResponse,
   Transaction,
@@ -221,5 +223,44 @@ export class AgentPayClient {
   /** Get the agent's trust score breakdown. */
   async getTrustScore(): Promise<TrustScoreBreakdown> {
     return this.request<TrustScoreBreakdown>("GET", "/v1/agent/identity/score");
+  }
+
+  // ------------------------------------------------------------------
+  // Payee Rules
+  // ------------------------------------------------------------------
+
+  /** List all payee rules for this agent. */
+  async listPayeeRules(): Promise<PayeeRulesResponse> {
+    return this.request<PayeeRulesResponse>("GET", "/v1/agent/payee-rules");
+  }
+
+  /**
+   * Create a payee allow/deny rule.
+   * @param payeeType One of 'agent_id', 'domain', 'category', 'address'.
+   * @param payeeValue The payee identifier to match.
+   * @param ruleType 'allow' or 'deny' (default: 'allow').
+   * @param maxAmountUsd Per-payee transaction cap (optional).
+   * @param note Optional human-readable note.
+   */
+  async createPayeeRule(
+    payeeType: string,
+    payeeValue: string,
+    ruleType: string = "allow",
+    maxAmountUsd?: number,
+    note?: string,
+  ): Promise<{ success: boolean; rule: PayeeRule }> {
+    const json: Record<string, unknown> = {
+      rule_type: ruleType,
+      payee_type: payeeType,
+      payee_value: payeeValue,
+    };
+    if (maxAmountUsd !== undefined) json.max_amount_usd = maxAmountUsd;
+    if (note !== undefined) json.note = note;
+    return this.request("POST", "/v1/agent/payee-rules", { json });
+  }
+
+  /** Delete (deactivate) a payee rule. */
+  async deletePayeeRule(ruleId: string): Promise<{ success: boolean; message: string }> {
+    return this.request("DELETE", `/v1/agent/payee-rules/${ruleId}`);
   }
 }

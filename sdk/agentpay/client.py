@@ -368,6 +368,75 @@ class AgentPayClient:
         return self._request("GET", "/v1/agent/identity/score")
 
     # ------------------------------------------------------------------
+    # Payee Rules
+    # ------------------------------------------------------------------
+
+    def list_payee_rules(self) -> Dict[str, Any]:
+        """List all payee rules for this agent.
+
+        Returns:
+            A dict with 'rules' list and 'total' count.
+
+        Example::
+
+            rules = client.list_payee_rules()
+            for r in rules["rules"]:
+                print(f"{r['rule_type']}: {r['payee_type']}={r['payee_value']}")
+        """
+        return self._request("GET", "/v1/agent/payee-rules")
+
+    def create_payee_rule(
+        self,
+        payee_type: str,
+        payee_value: str,
+        rule_type: str = "allow",
+        max_amount_usd: Optional[float] = None,
+        note: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Create a payee allow/deny rule.
+
+        Args:
+            payee_type: One of 'agent_id', 'domain', 'category', 'address'.
+            payee_value: The payee identifier to match.
+            rule_type: 'allow' or 'deny' (default: 'allow').
+            max_amount_usd: Per-payee transaction cap (optional).
+            note: Optional human-readable note.
+
+        Returns:
+            A dict with 'success' and 'rule' details.
+
+        Example::
+
+            client.create_payee_rule("domain", "api.openai.com", max_amount_usd=5.0)
+            client.create_payee_rule("category", "gambling", rule_type="deny")
+        """
+        payload: Dict[str, Any] = {
+            "rule_type": rule_type,
+            "payee_type": payee_type,
+            "payee_value": payee_value,
+        }
+        if max_amount_usd is not None:
+            payload["max_amount_usd"] = max_amount_usd
+        if note is not None:
+            payload["note"] = note
+        return self._request("POST", "/v1/agent/payee-rules", json=payload)
+
+    def delete_payee_rule(self, rule_id: str) -> Dict[str, Any]:
+        """Delete (deactivate) a payee rule.
+
+        Args:
+            rule_id: The rule ID to deactivate.
+
+        Returns:
+            A dict with 'success' and 'message'.
+
+        Example::
+
+            client.delete_payee_rule("rule-uuid-here")
+        """
+        return self._request("DELETE", f"/v1/agent/payee-rules/{rule_id}")
+
+    # ------------------------------------------------------------------
     # Cleanup
     # ------------------------------------------------------------------
 

@@ -134,3 +134,21 @@ export interface TrustScoreBreakdown {
   verified_max: number;
   details: Record<string, unknown>;
 }
+
+/** A payee rule (allow or deny). */
+export interface PayeeRule {
+  id: string;
+  rule_type: "allow" | "deny";
+  payee_type: "agent_id" | "domain" | "category" | "address";
+  payee_value: string;
+  max_amount_usd?: number | null;
+  note?: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+/** Response from the list payee rules endpoint. */
+export interface PayeeRulesResponse {
+  rules: PayeeRule[];
+  total: number;
+}

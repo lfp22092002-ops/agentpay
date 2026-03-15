@@ -12,6 +12,8 @@ export type {
   AgentPayOptions,
   Balance,
   Chain,
+  PayeeRule,
+  PayeeRulesResponse,
   RefundResponse,
   SpendResponse,
   Transaction,
