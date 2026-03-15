@@ -101,6 +101,24 @@ class Agent(Base):
     wallet: Mapped["Wallet | None"] = relationship(back_populates="agent", uselist=False, cascade="all, delete-orphan")
     transactions: Mapped[list["Transaction"]] = relationship(back_populates="agent", cascade="all, delete-orphan")
     identity: Mapped["AgentIdentity | None"] = relationship(back_populates="agent", uselist=False, cascade="all, delete-orphan")
+    payee_rules: Mapped[list["PayeeRule"]] = relationship(back_populates="agent", cascade="all, delete-orphan")
+
+
+class PayeeRule(Base):
+    """Payee whitelist/blocklist — controls who an agent can pay."""
+    __tablename__ = "payee_rules"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    agent_id: Mapped[str] = mapped_column(String(36), ForeignKey("agents.id"), index=True)
+    rule_type: Mapped[str] = mapped_column(String(10), default="allow")  # "allow" or "deny"
+    payee_type: Mapped[str] = mapped_column(String(20))  # "agent_id", "domain", "category", "address"
+    payee_value: Mapped[str] = mapped_column(String(512))  # the ID, domain, category, or address
+    max_amount_usd: Mapped[Decimal | None] = mapped_column(Numeric(12, 4), nullable=True)  # per-payee tx cap
+    note: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+    agent: Mapped["Agent"] = relationship(back_populates="payee_rules")
 
 
 class Wallet(Base):
