@@ -1,0 +1,22 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#discovery-v1",
+  "name": "AgentPay",
+  "description": "Payment infrastructure for AI agents — fund, spend, and control agent wallets",
+  "url": "https://leofundmybot.dev",
+  "identity_registry": null,
+  "reputation_endpoint": "https://leofundmybot.dev/v1/directory",
+  "registration_template": "https://leofundmybot.dev/v1/directory/{agent_id}/registration.json",
+  "capabilities": [
+    "agent-wallets",
+    "multi-chain-usdc",
+    "spending-limits",
+    "approval-workflows",
+    "trust-scores",
+    "x402-micropayments",
+    "webhooks",
+    "telegram-funding"
+  ],
+  "supported_chains": ["base", "polygon", "bnb", "solana"],
+  "api_base": "https://leofundmybot.dev/v1",
+  "documentation": "https://leofundmybot.dev/docs-site/"
+}

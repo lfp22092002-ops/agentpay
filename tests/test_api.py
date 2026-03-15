@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Must set env vars before importing app
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite://"
 os.environ["BOT_TOKEN"] = ""
-os.environ["API_SECRET"] = "test-secret-key-for-tests"
+os.environ["API_SECRET"] = "test-secret-key-for-tests-minimum-32-bytes-long"
 
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
