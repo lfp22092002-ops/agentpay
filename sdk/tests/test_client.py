@@ -28,12 +28,18 @@ def client():
     c.close()
 
 
-def _mock_response(status_code: int = 200, data: dict | None = None, text: str = ""):
+def _mock_response(
+    status_code: int = 200,
+    data: dict | None = None,
+    text: str = "",
+    headers: dict | None = None,
+):
     resp = MagicMock(spec=httpx.Response)
     resp.status_code = status_code
     resp.is_success = 200 <= status_code < 300
     resp.text = text or json.dumps(data or {})
     resp.json.return_value = data or {}
+    resp.headers = httpx.Headers(headers or {})
     return resp
 
 
