@@ -202,3 +202,31 @@
 - Armstrong + CZ both predict agents will outnumber humans in transaction volume
 - Nvidia launching NemoClaw (enterprise OpenClaw) adds enterprise agent demand
 - **Assessment**: Real traction at protocol level. AgentPay benefits from both crypto adoption and category validation.
+
+### Razorpay Agent Studio + Anthropic (FTX 2026, Mar 13)
+- **What**: World's first "Agent Studio" built with Claude Agent SDK — for India's largest payment platform
+- **Stack**: Agents automate payment operations (disputes, reconciliation, merchant onboarding)
+- **Impact**: India's Stripe equivalent going agentic. Validates payment + agent convergence.
+- **Assessment**: Enterprise operations, not agent-native wallets. Different customer but same narrative.
+
+### ReFiBuy — Agentic Commerce for Retailers (Mar 13)
+- **What**: Founded by ex-ChannelAdvisor execs. Helps brands connect with ChatGPT/Gemini shopping agents.
+- **Assessment**: Commerce discovery layer, not payments. Complementary to AgentPay.
+
+### Rye: Agentic Commerce Landscape Map (Mar 12)
+- **What**: Mapped 50+ companies across 7-layer agentic commerce value chain
+- **Key finding**: Payments & Identity layer has most startup funding (~$50M: Basis Theory, Nekuda, Skyfire)
+- **Key finding**: Checkout execution is surprisingly underserved — most energy went to discovery/protocols
+- **6 protocols**: ACP (OpenAI+Stripe), UCP (Google+Shopify), AP2, MCP (Anthropic), A2A, Visa TAP
+- **Market**: $135B (2025) → $1.7T (2030) projected
+- **Assessment**: Validates that Payments & Identity is where VC money flows. AgentPay needs to get visible in these landscape maps. Rye itself is potential integration partner (checkout execution).
+
+### Affirm + Stripe Shared Payment Tokens (Mar ~13)
+- **What**: Affirm extending partnership with Stripe to enable shared payment tokens for agentic commerce
+- **Impact**: BNPL entering agent transactions via Stripe-connected sellers. Google A2A alignment.
+- **Assessment**: Enterprise/card-rail. Shows SPTs becoming the standard for agent payment in TradFi.
+
+### Telegram Stars Mandatory June 12 (confirmed)
+- From Jun 12, ALL digital goods/services in bots & mini apps MUST use Telegram Stars exclusively
+- No exceptions — this is our production deadline for Stars integration
+- Stars → TON → USDC bridge becomes critical for our funding flow

@@ -186,6 +186,35 @@ curl -X POST \
 - **[Examples](https://github.com/lfp22092002-ops/agentpay/tree/main/examples)** — Python, TypeScript, OpenAI agent integration
 - **[Telegram Bot](https://t.me/FundmyAIbot)** — Manage agents, fund, view history
 - **[Dashboard](/app/)** — Visual dashboard for your agents
+- **[Payee Rules](#payee-rules)** — Control who your agent can pay
+
+## Payee Rules
+
+Control which services, agents, or addresses your agent can pay. Rules act as a firewall for agent spending.
+
+```bash
+# Allow payments only to OpenAI
+curl -X POST \
+  -H "Authorization: Bearer ap_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"rule_type": "allow", "payee_type": "domain", "payee_value": "api.openai.com", "max_amount_usd": 5.00}' \
+  https://leofundmybot.dev/v1/agent/payee-rules
+
+# Block a category
+curl -X POST \
+  -H "Authorization: Bearer ap_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"rule_type": "deny", "payee_type": "category", "payee_value": "gambling"}' \
+  https://leofundmybot.dev/v1/agent/payee-rules
+
+# List rules
+curl -H "Authorization: Bearer ap_your_key" \
+  https://leofundmybot.dev/v1/agent/payee-rules
+```
+
+**Rule types**: `allow` (whitelist) or `deny` (blocklist)
+**Payee types**: `agent_id`, `domain`, `category`, `address`
+**Default**: No rules = open (all payments allowed). Adding allow rules switches to whitelist mode.
 
 ## Need Help?
 
