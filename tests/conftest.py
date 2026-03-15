@@ -20,7 +20,7 @@ sys.path.insert(0, PROJECT_ROOT)
 # Override env before any project imports
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite://"
 os.environ["BOT_TOKEN"] = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz0123456789a"
-os.environ["API_SECRET"] = "test-secret-key-for-tests"
+os.environ["API_SECRET"] = "test-secret-key-for-tests-minimum-32-bytes-long"
 
 # Build a test engine BEFORE importing models.database so we can swap it in
 _test_engine = create_async_engine("sqlite+aiosqlite://", echo=False)

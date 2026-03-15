@@ -375,9 +375,9 @@ autonomous_agent_loop()
 
 ## What's Next
 
-- **TypeScript SDK** — coming soon on npm
+- **TypeScript SDK** — available in  (full client with 5 error classes)
 - **Virtual Visa cards** — let agents pay anywhere (via Lithic)
-- **Approval workflows** — require human sign-off above spending thresholds
+- **Approval workflows** — already built! Require human sign-off above spending thresholds
 - **LangChain/CrewAI native tools** — first-class framework integrations
 
 ---

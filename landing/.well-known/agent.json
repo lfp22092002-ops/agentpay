@@ -1,0 +1,67 @@
+{
+  "name": "AgentPay",
+  "description": "Payment infrastructure for AI agents. Check balances, spend funds, transfer between agents, manage on-chain USDC wallets, pay for x402 resources, and query agent identity/trust scores.",
+  "url": "https://leofundmybot.dev",
+  "version": "0.1.1",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false
+  },
+  "skills": [
+    {
+      "id": "balance",
+      "name": "Check Balance",
+      "description": "Check the agent's current balance, daily limits, and spending info."
+    },
+    {
+      "id": "spend",
+      "name": "Spend Funds",
+      "description": "Deduct from the agent's wallet and get a transaction receipt."
+    },
+    {
+      "id": "transfer",
+      "name": "Transfer Funds",
+      "description": "Transfer USDC between agents."
+    },
+    {
+      "id": "transactions",
+      "name": "Transaction History",
+      "description": "Get recent transactions for the agent."
+    },
+    {
+      "id": "refund",
+      "name": "Refund Transaction",
+      "description": "Refund a previous spend transaction."
+    },
+    {
+      "id": "wallet",
+      "name": "On-Chain Wallet",
+      "description": "Get on-chain wallet address and balance for Base, Polygon, BNB, or Solana."
+    },
+    {
+      "id": "x402_pay",
+      "name": "x402 Payment",
+      "description": "Pay for an x402-gated HTTP resource using the agent's on-chain USDC wallet."
+    },
+    {
+      "id": "identity",
+      "name": "Agent Identity (KYA)",
+      "description": "Get agent identity profile including trust score and verification status."
+    },
+    {
+      "id": "webhook",
+      "name": "Register Webhook",
+      "description": "Register a webhook endpoint for real-time event notifications."
+    }
+  ],
+  "authentication": {
+    "schemes": ["apiKey"],
+    "credentials": "API key via X-API-Key header. Create an agent at @FundmyAIbot on Telegram."
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "provider": {
+    "organization": "AgentPay",
+    "url": "https://leofundmybot.dev"
+  }
+}

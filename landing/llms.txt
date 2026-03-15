@@ -1,0 +1,35 @@
+# AgentPay
+
+> Payment infrastructure for autonomous AI agents
+
+AgentPay gives AI agents their own wallets. Fund via Telegram Stars or USDC, set spending rules, and let agents operate independently.
+
+## Features
+- Multi-chain USDC wallets (Base, Polygon, BNB Chain, Solana)
+- Telegram Stars funding (instant, in-app)
+- Agent-to-agent transfers
+- x402 protocol support (HTTP-native micropayments)
+- KYA (Know Your Agent) identity with trust scores
+- Budget governance and approval workflows
+- Webhooks (HMAC-SHA256 signed)
+- Python SDK (`pip install agentpay`) and TypeScript SDK (`npm install agentpay`)
+
+## MCP Server
+- Remote: `https://leofundmybot.dev/mcp` (Streamable HTTP, requires `x-api-key` header)
+- Local: `python mcp/server.py` (set `AGENTPAY_API_KEY` env var)
+
+## API
+- Base URL: `https://leofundmybot.dev`
+- OpenAPI spec: `https://leofundmybot.dev/.well-known/openapi.json`
+- Interactive docs: `https://leofundmybot.dev/docs`
+
+## Quick Start
+1. Open @FundmyAIbot in Telegram → /newagent → Copy API key
+2. Fund via Stars or deposit USDC
+3. Use API/SDK/MCP to spend
+
+## Links
+- GitHub: https://github.com/lfp22092002-ops/agentpay
+- Website: https://leofundmybot.dev
+- Telegram Bot: https://t.me/FundmyAIbot
+- License: MIT
