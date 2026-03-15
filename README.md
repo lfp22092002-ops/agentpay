@@ -195,13 +195,16 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 
 - [x] Multi-chain USDC wallets (Base, Polygon, BNB, Solana)
 - [x] Agent Identity System (KYA — Know Your Agent) with trust scores
+- [x] ERC-8004 Trustless Agents compatibility
 - [x] Security audit — pen-tested with Nmap, Nikto, SQLmap (0 vulns)
+- [x] Security model whitepaper ([docs/security-model.md](docs/security-model.md))
 - [x] Dashboard API for analytics
+- [x] LangChain / CrewAI native tool wrappers
 - [ ] Python SDK on PyPI (`pip install agentpay`)
 - [ ] TypeScript SDK on npm
-- [x] LangChain / CrewAI native tool wrappers
 - [ ] Virtual Visa cards via Lithic
 - [ ] Telegram Stars production payments
+- [ ] ERC-8004 on-chain registration (Phase 2)
 - [ ] Dashboard UI (web frontend)
 - [ ] Payee whitelists
 - [ ] Google AP2 + Stripe Agentic Commerce compatibility
@@ -214,6 +217,8 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 - 🤖 **Bot**: [@FundmyAIbot](https://t.me/FundmyAIbot)
 - 🌐 **Website**: [leofundmybot.dev](https://leofundmybot.dev)
 - 📚 **API Docs**: [leofundmybot.dev/docs](https://leofundmybot.dev/docs)
+- 🔒 **Security Model**: [docs/security-model.md](docs/security-model.md)
+- 🆔 **ERC-8004 Discovery**: [.well-known/erc-8004.json](https://leofundmybot.dev/.well-known/erc-8004.json)
 - 🐍 **SDK**: `sdk/agentpay/`
 - 🔧 **MCP Tools**: `mcp/`
 
