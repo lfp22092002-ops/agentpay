@@ -1,0 +1,34 @@
+# Smithery configuration for AgentPay MCP server
+# Ref: https://smithery.ai/docs/publishing
+name: "@agentpay/agentpay"
+description: "Payment layer for autonomous AI agents — fund via Telegram Stars or USDC, set spending rules, let agents operate independently."
+homepage: "https://leofundmybot.dev"
+repository: "https://github.com/lfp22092002-ops/agentpay"
+license: "MIT"
+icon: "💳"
+tags:
+  - payments
+  - crypto
+  - stablecoin
+  - x402
+  - usdc
+  - ai-agent
+  - telegram
+  - wallet
+  - mcp
+
+# Remote server (Streamable HTTP)
+startCommand:
+  type: http
+  url: "https://leofundmybot.dev/mcp"
+  configSchema:
+    type: object
+    properties:
+      apiKey:
+        type: string
+        title: "AgentPay API Key"
+        description: "Your agent API key (starts with ap_). Get one from @FundmyAIbot on Telegram."
+        x-from:
+          header: "x-api-key"
+    required:
+      - apiKey

@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AgentPay API",
     description="Payment API for AI agents. Let your bot spend money.",
-    version="0.1.0",
+    version="0.1.1",
     lifespan=lifespan,
 )
 
@@ -120,6 +120,7 @@ from api.routes.wallets import router as wallets_router
 from api.routes.identity import router as identity_router
 from api.routes.admin import router as admin_router
 from api.routes.miniapp import router as miniapp_router
+from api.routes.mcp import router as mcp_router
 
 app.include_router(health_router)
 app.include_router(agents_router)
@@ -127,6 +128,7 @@ app.include_router(wallets_router)
 app.include_router(identity_router)
 app.include_router(admin_router)
 app.include_router(miniapp_router)
+app.include_router(mcp_router)
 
 
 # ═══════════════════════════════════════
