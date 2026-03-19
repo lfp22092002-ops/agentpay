@@ -15,5 +15,5 @@ slowapi==0.1.9
 solana[spl]>=0.34.0
 solders>=0.21.0
 uvicorn==0.41.0
-web3==7.10.0
+web3==7.14.1
 x402==1.0.0
