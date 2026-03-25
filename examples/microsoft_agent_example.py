@@ -14,7 +14,7 @@ Usage:
 
 import asyncio
 import os
-from agent_framework import Agent, tool
+from agent_framework import tool
 from agent_framework.openai import OpenAIResponsesClient
 from agentpay import AgentPayClient
 from agentpay.exceptions import InsufficientFundsError, AgentPayError

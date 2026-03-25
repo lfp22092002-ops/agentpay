@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies import get_agent_auth
 from api.middleware import limiter
-from models.database import get_db
 from models.schema import PayeeRule
 
 router = APIRouter(prefix="/v1", tags=["payee-rules"])
@@ -91,7 +90,7 @@ async def create_payee_rule(
             PayeeRule.payee_type == req.payee_type,
             PayeeRule.payee_value == req.payee_value,
             PayeeRule.rule_type == req.rule_type,
-            PayeeRule.is_active == True,
+            PayeeRule.is_active.is_(True),
         )
     )
     existing = result.scalar_one_or_none()
@@ -172,7 +171,7 @@ async def check_payee_allowed(
     result = await db.execute(
         select(PayeeRule).where(
             PayeeRule.agent_id == agent_id,
-            PayeeRule.is_active == True,
+            PayeeRule.is_active.is_(True),
         )
     )
     rules = result.scalars().all()
