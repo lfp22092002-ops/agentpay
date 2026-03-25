@@ -1,0 +1,376 @@
+# AgentPay — Full Documentation for LLMs
+
+> Payment infrastructure for autonomous AI agents.
+> Give your AI agent a wallet, fund it, and let it spend autonomously.
+
+## Overview
+
+AgentPay is a self-hosted, open-source payment layer that lets AI agents hold funds, spend them via API, and transfer between agents. Funded via Telegram Stars (instant) or on-chain USDC deposits. Supports Base, Polygon, BNB Chain, and Solana.
+
+## Architecture
+
+- **API Server**: FastAPI (Python), PostgreSQL, port 8080
+- **Telegram Bot**: @FundmyAIbot (aiogram)
+- **MCP Server**: Streamable HTTP at /mcp
+- **SDK**: Python (`pip install agentpay`), TypeScript (`npm install agentpay`)
+- **Self-hosted**: Docker Compose or bare metal
+- **License**: MIT
+
+## Authentication
+
+All API calls require an `X-API-Key` header with your agent API key (starts with `ap_`).
+
+```
+X-API-Key: ap_your_api_key_here
+```
+
+Get an API key: Open @FundmyAIbot in Telegram → /newagent → Copy your key (shown once).
+
+## API Reference
+
+Base URL: `https://leofundmybot.dev`
+
+### GET /api/balance
+
+Get the agent's current balance and spending limits.
+
+**Response:**
+```json
+{
+  "agent_id": "ag_abc123",
+  "agent_name": "my-agent",
+  "balance_usd": 50.00,
+  "daily_limit_usd": 100.00,
+  "daily_spent_usd": 12.50,
+  "daily_remaining_usd": 87.50,
+  "tx_limit_usd": 25.00,
+  "is_active": true
+}
+```
+
+### POST /api/spend
+
+Spend funds from the agent's balance.
+
+**Request:**
+```json
+{
+  "amount": 5.00,
+  "description": "GPT-4 API call batch"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "transaction_id": "tx_abc123",
+  "amount": 5.00,
+  "fee": 0.10,
+  "remaining_balance": 44.90,
+  "status": "completed"
+}
+```
+
+### POST /api/transfer
+
+Transfer funds to another agent.
+
+**Request:**
+```json
+{
+  "to_agent": "ag_recipient",
+  "amount": 10.00,
+  "description": "Payment for data processing"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "transaction_id": "tx_def456",
+  "amount": 10.00,
+  "from_balance": 34.90
+}
+```
+
+### POST /api/refund
+
+Refund a previous transaction.
+
+**Request:**
+```json
+{
+  "transaction_id": "tx_abc123"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "refund_transaction_id": "tx_ref789",
+  "amount_refunded": 5.00,
+  "new_balance": 39.90
+}
+```
+
+### GET /api/transactions?limit=20
+
+List recent transactions.
+
+**Response:**
+```json
+[
+  {
+    "id": "tx_abc123",
+    "type": "spend",
+    "amount": 5.00,
+    "fee": 0.10,
+    "description": "GPT-4 API call batch",
+    "status": "completed",
+    "created_at": "2026-03-25T12:00:00Z"
+  }
+]
+```
+
+### GET /api/wallet?chain=base
+
+Get the agent's on-chain wallet for a specific chain.
+
+**Supported chains:** `base`, `polygon`, `bnb`, `solana`
+
+**Response:**
+```json
+{
+  "address": "0x1234...abcd",
+  "chain": "base",
+  "network": "Base Mainnet",
+  "balance_usdc": "25.50",
+  "balance_native": "0.001",
+  "native_token": "ETH"
+}
+```
+
+### GET /api/chains
+
+List all supported blockchain networks.
+
+**Response:**
+```json
+[
+  {
+    "id": "base",
+    "name": "Base",
+    "type": "evm",
+    "native_token": "ETH",
+    "usdc_supported": true,
+    "explorer": "https://basescan.org"
+  }
+]
+```
+
+### POST /api/webhooks
+
+Register a webhook for transaction events.
+
+**Request:**
+```json
+{
+  "url": "https://your-server.com/webhook",
+  "events": ["spend", "deposit", "transfer"]
+}
+```
+
+**Response:**
+```json
+{
+  "url": "https://your-server.com/webhook",
+  "secret": "whsec_abc123",
+  "events": ["spend", "deposit", "transfer"]
+}
+```
+
+Webhook payloads are signed with HMAC-SHA256 using the secret. Verify via the `X-AgentPay-Signature` header.
+
+### POST /api/x402/pay
+
+Pay for an x402-protected resource (HTTP 402 micropayments).
+
+**Request:**
+```json
+{
+  "url": "https://api.example.com/premium-data",
+  "max_usd": 1.00
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": 200,
+  "data": "...",
+  "paid_usd": 0.05
+}
+```
+
+### GET /api/identity
+
+Get the agent's KYA (Know Your Agent) identity.
+
+### GET /api/trust-score
+
+Get the agent's trust score (based on transaction history and behavior).
+
+### GET /api/payee-rules
+
+List payee whitelist/blocklist rules.
+
+### POST /api/payee-rules
+
+Create a payee rule (whitelist or blocklist with optional amount caps).
+
+**Request:**
+```json
+{
+  "payee": "merchant_xyz",
+  "action": "allow",
+  "max_per_tx_usd": 10.00,
+  "max_daily_usd": 50.00
+}
+```
+
+### DELETE /api/payee-rules/{rule_id}
+
+Delete a payee rule.
+
+## Python SDK
+
+```bash
+pip install agentpay
+```
+
+### Synchronous Client
+
+```python
+from agentpay import AgentPayClient
+
+client = AgentPayClient("ap_your_key")
+
+# Check balance
+balance = client.get_balance()
+print(f"${balance.balance_usd} available")
+
+# Spend
+tx = client.spend(amount=5.00, description="API call")
+print(f"Spent ${tx.amount}, remaining ${tx.remaining_balance}")
+
+# Transfer to another agent
+transfer = client.transfer(to_agent="ag_other", amount=10.00)
+
+# List transactions
+txs = client.get_transactions(limit=10)
+
+# Get wallet
+wallet = client.get_wallet(chain="base")
+print(f"USDC balance: {wallet.balance_usdc}")
+
+# x402 micropayment
+result = client.x402_pay(url="https://api.example.com/data", max_usd=1.00)
+
+# Payee rules
+client.create_payee_rule(payee="merchant", action="allow", max_per_tx_usd=10.00)
+rules = client.list_payee_rules()
+
+client.close()
+```
+
+### Async Client
+
+```python
+from agentpay import AsyncAgentPayClient
+
+async with AsyncAgentPayClient("ap_your_key") as client:
+    balance = await client.get_balance()
+    tx = await client.spend(amount=5.00, description="API call")
+```
+
+### Error Handling
+
+```python
+from agentpay import AgentPayClient, AgentPayError, InsufficientBalanceError
+
+try:
+    tx = client.spend(amount=1000.00, description="big purchase")
+except InsufficientBalanceError:
+    print("Not enough funds")
+except AgentPayError as e:
+    print(f"API error: {e}")
+```
+
+## MCP Server (Model Context Protocol)
+
+### Remote (recommended)
+
+Connect any MCP-compatible agent to AgentPay:
+
+```json
+{
+  "mcpServers": {
+    "agentpay": {
+      "url": "https://leofundmybot.dev/mcp",
+      "headers": {
+        "x-api-key": "ap_your_key"
+      }
+    }
+  }
+}
+```
+
+### Local
+
+```bash
+AGENTPAY_API_KEY=ap_your_key python mcp/server.py
+```
+
+### Available MCP Tools
+
+- `agentpay_balance` — Check agent balance and limits
+- `agentpay_spend` — Spend funds (amount, description)
+- `agentpay_transfer` — Transfer to another agent
+- `agentpay_transactions` — List recent transactions
+- `agentpay_wallet` — Get on-chain wallet info
+- `agentpay_refund` — Refund a transaction
+- `agentpay_x402_pay` — Pay for x402-protected resources
+
+## Self-Hosting
+
+```bash
+git clone https://github.com/lfp22092002-ops/agentpay.git
+cd agentpay
+cp .env.example .env  # Edit with your config
+docker compose up -d
+```
+
+Requires: PostgreSQL, Python 3.9+, Telegram Bot Token.
+
+## Security
+
+- API keys are SHA-256 hashed at rest
+- Wallet private keys encrypted with Fernet + PBKDF2
+- Webhook signatures: HMAC-SHA256
+- Rate limiting on all endpoints
+- CORS lockdown
+- Budget governance: daily limits, per-tx limits, approval workflows
+
+## Links
+
+- GitHub: https://github.com/lfp22092002-ops/agentpay
+- Website: https://leofundmybot.dev
+- API Docs (OpenAPI): https://leofundmybot.dev/docs
+- Telegram Bot: https://t.me/FundmyAIbot
+- PyPI: https://pypi.org/project/agentpay/
+- Security Model: https://github.com/lfp22092002-ops/agentpay/blob/main/docs/security-model.md
+- License: MIT
