@@ -106,6 +106,10 @@ ruff check . --select E,F,W --ignore E501
 
 # Auto-fix
 ruff check . --select E,F,W --ignore E501 --fix
+
+# Security audit (also runs in CI)
+pip install pip-audit
+pip-audit --strict
 ```
 
 ## Writing Tests
