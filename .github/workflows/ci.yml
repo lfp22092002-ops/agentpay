@@ -57,6 +57,22 @@ jobs:
       - name: Lint
         run: ruff check .
 
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Audit dependencies
+        run: |
+          pip install pip-audit
+          pip install -r requirements.txt
+          pip-audit --strict
+
   ts-sdk:
     runs-on: ubuntu-latest
     steps:
