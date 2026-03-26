@@ -1854,6 +1854,118 @@
           }
         }
       }
+    },
+    "/v1/agent/payee-rules": {
+      "get": {
+        "tags": [
+          "payee-rules"
+        ],
+        "summary": "List payee rules",
+        "description": "List all payee allow/deny rules for the authenticated agent.",
+        "operationId": "listPayeeRules",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of payee rules",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rules": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PayeeRule"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "payee-rules"
+        ],
+        "summary": "Create payee rule",
+        "description": "Create an allow or deny rule for a specific payee (agent_id, domain, category, or address).",
+        "operationId": "createPayeeRule",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayeeRuleCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Rule created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayeeRule"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agent/payee-rules/{rule_id}": {
+      "delete": {
+        "tags": [
+          "payee-rules"
+        ],
+        "summary": "Delete payee rule",
+        "description": "Delete a payee rule by ID.",
+        "operationId": "deletePayeeRule",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3020,6 +3132,76 @@
           "success"
         ],
         "title": "X402PayResponse"
+      },
+      "PayeeRuleCreate": {
+        "type": "object",
+        "required": [
+          "payee_type",
+          "payee_value"
+        ],
+        "properties": {
+          "rule_type": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "deny"
+            ],
+            "default": "allow"
+          },
+          "payee_type": {
+            "type": "string",
+            "enum": [
+              "agent_id",
+              "domain",
+              "category",
+              "address"
+            ]
+          },
+          "payee_value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "max_amount_usd": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 255
+          }
+        }
+      },
+      "PayeeRule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rule_type": {
+            "type": "string"
+          },
+          "payee_type": {
+            "type": "string"
+          },
+          "payee_value": {
+            "type": "string"
+          },
+          "max_amount_usd": {
+            "type": "number",
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     }
   }
