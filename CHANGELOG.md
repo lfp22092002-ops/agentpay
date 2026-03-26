@@ -2,6 +2,18 @@
 
 All notable changes to AgentPay will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **PR template**: `.github/PULL_REQUEST_TEMPLATE.md` for consistent contributions
+- **llms-full.txt**: Comprehensive API docs for LLM discoverability (7.3KB)
+- **Competitive landscape docs**: Razorpay, ReFiBuy, Rye, Affirm+Stripe, Stars deadline
+- **Payee whitelists**: Added to landing page + llms.txt + getting-started guide
+
+### Fixed
+- Ruff lint errors: unused imports, E712 comparisons
+- Alembic env import fix
+
 ## [0.1.1] — 2026-03-12
 
 ### Added
