@@ -1,0 +1,12 @@
+# Default owner for everything
+* @lfp22092002-ops
+
+# Core payment logic — requires explicit review
+/core/ @lfp22092002-ops
+/api/ @lfp22092002-ops
+/providers/ @lfp22092002-ops
+/models/ @lfp22092002-ops
+
+# Security-sensitive
+SECURITY.md @lfp22092002-ops
+/config/ @lfp22092002-ops
