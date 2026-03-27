@@ -106,10 +106,10 @@ async def pay_x402_resource(
 
         # Step 3: Create and sign payment
         try:
-            from x402.clients.httpx import x402_httpx_client
+            from x402.clients.httpx import x402HttpxClient
 
             # Use the x402 httpx client which handles the payment flow
-            x402_client = x402_httpx_client(private_key)
+            x402_client = x402HttpxClient(private_key)
 
             if method.upper() == "GET":
                 paid_resp = await x402_client.get(resource_url)

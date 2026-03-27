@@ -167,7 +167,7 @@ class TestX402Client:
         mock_x402_client.get = AsyncMock(return_value=paid_resp)
 
         mock_x402_mod = MagicMock()
-        mock_x402_mod.x402_httpx_client = MagicMock(return_value=mock_x402_client)
+        mock_x402_mod.x402HttpxClient = MagicMock(return_value=mock_x402_client)
 
         with patch("providers.local_wallet.WALLETS_DIR", wallets_dir), \
              patch("httpx.AsyncClient") as MockAsyncClient, \
