@@ -20,6 +20,7 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [smolagents_agent.py](smolagents_agent.py) | HuggingFace Smolagents with code-first budget tools |
 | [google_adk_agent.py](google_adk_agent.py) | Google ADK (Agent Development Kit) with budget tools |
 | [microsoft_agent_example.py](microsoft_agent_example.py) | Microsoft Agent Framework with @tool decorated budget tools |
+| [anthropic_claude_agent.py](anthropic_claude_agent.py) | Anthropic Claude with tool_use for budget-aware spending |
 
 ## TypeScript / Node.js
 
