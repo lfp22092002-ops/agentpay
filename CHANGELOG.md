@@ -10,9 +10,20 @@ All notable changes to AgentPay will be documented in this file.
 - **Competitive landscape docs**: Razorpay, ReFiBuy, Rye, Affirm+Stripe, Stars deadline
 - **Payee whitelists**: Added to landing page + llms.txt + getting-started guide
 
+### Changed
+- **OpenAPI spec**: Added payee-rules endpoints (GET/POST/DELETE) — total 39 endpoints
+- **CODEOWNERS**: Core payment + security paths require review
+- **CONTRIBUTING.md**: Added `pip-audit` security scanning instructions
+
 ### Fixed
 - Ruff lint errors: unused imports, E712 comparisons
 - Alembic env import fix
+
+### CI
+- Added `pip-audit` security scanning job to CI pipeline
+
+### Docs
+- MCP client usage example (`examples/mcp_client.py`)
 
 ## [0.1.1] — 2026-03-12
 
