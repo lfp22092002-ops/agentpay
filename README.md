@@ -224,6 +224,19 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 
 ---
 
+## Self-Hosting
+
+```bash
+git clone https://github.com/lfp22092002-ops/agentpay.git
+cd agentpay
+cp .env.example .env  # configure your tokens
+docker compose up -d
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for full setup guide.
+
+---
+
 ## Contributing
 
 PRs welcome. Open an issue first for big changes.
