@@ -218,9 +218,18 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 - 🌐 **Website**: [leofundmybot.dev](https://leofundmybot.dev)
 - 📚 **API Docs**: [leofundmybot.dev/docs](https://leofundmybot.dev/docs)
 - 🔒 **Security Model**: [docs/security-model.md](docs/security-model.md)
+- 🏗️ **Security Architecture**: [docs/security-architecture.md](docs/security-architecture.md)
 - 🆔 **ERC-8004 Discovery**: [.well-known/erc-8004.json](https://leofundmybot.dev/.well-known/erc-8004.json)
 - 🐍 **SDK**: `sdk/agentpay/`
 - 🔧 **MCP Tools**: `mcp/`
+
+### Guides & Tutorials
+
+- 📖 [Getting Started](docs/getting-started.md) — setup, first agent, first transaction
+- 🎓 [Give Your Agent a Wallet in 5 Minutes](docs/tutorial-give-your-agent-a-wallet.md) — hands-on tutorial
+- 🚀 [Product Hunt Launch Plan](docs/product-hunt-launch.md)
+- 🌐 [Competitive Landscape](docs/competitive-landscape.md)
+- 📦 [PyPI Publishing Guide](docs/pypi-publish-guide.md)
 
 ---
 
