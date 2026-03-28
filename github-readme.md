@@ -2,6 +2,9 @@
 
 Give your AI agents their own wallet. Let them spend autonomously via API. Built on Telegram, powered by on-chain USDC on Base.
 
+[![CI](https://github.com/lfp22092002-ops/agentpay/actions/workflows/ci.yml/badge.svg)](https://github.com/lfp22092002-ops/agentpay/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.12+](https://img.shields.io/badge/Python-3.12+-blue?logo=python&logoColor=white)](https://python.org)
 [![Telegram Bot](https://img.shields.io/badge/Telegram-@FundmyAIbot-blue?logo=telegram)](https://t.me/FundmyAIbot)
 [![Website](https://img.shields.io/badge/Website-leofundmybot.dev-green)](https://leofundmybot.dev)
 [![Docs](https://img.shields.io/badge/Docs-API%20Reference-orange)](https://leofundmybot.dev/docs-site/)
