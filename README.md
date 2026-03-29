@@ -123,21 +123,6 @@ Telegram Stars    Multi-chain USDC
 
 ---
 
-## Self-Hosting
-
-```bash
-git clone https://github.com/lfp22092002-ops/agentpay.git
-cd agentpay
-cp .env.example .env  # Configure your keys
-pip install -r requirements.txt
-alembic upgrade head
-uvicorn api.main:app --host 0.0.0.0 --port 8080
-```
-
-Requires: Python 3.11+, PostgreSQL, a Telegram Bot Token.
-
----
-
 ## API Endpoints (35+)
 
 | Category | Endpoints |
