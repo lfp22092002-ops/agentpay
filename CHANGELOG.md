@@ -5,15 +5,22 @@ All notable changes to AgentPay will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Streamable HTTP MCP transport**: `mcp/server_http.py` — alternative to stdio for web-native integrations
+- **Wallet route tests**: 14 tests covering spend, refund, transfer, chains, card, webhook, approvals, x402
+- **Health endpoint tests**: Route-level test coverage for `/v1/health`
+- **MCP server tests**: 19 handler tests + tool registry + error paths
+- **Middleware tests**: Security headers, rate limiting, exception handler
 - **PR template**: `.github/PULL_REQUEST_TEMPLATE.md` for consistent contributions
 - **llms-full.txt**: Comprehensive API docs for LLM discoverability (7.3KB)
 - **Competitive landscape docs**: Razorpay, ReFiBuy, Rye, Affirm+Stripe, Stars deadline
 - **Payee whitelists**: Added to landing page + llms.txt + getting-started guide
 
 ### Changed
+- **Dockerfile**: Multi-stage build (smaller image, no gcc in runtime)
 - **OpenAPI spec**: Added payee-rules endpoints (GET/POST/DELETE) — total 39 endpoints
 - **CODEOWNERS**: Core payment + security paths require review
 - **CONTRIBUTING.md**: Added `pip-audit` security scanning instructions
+- **README**: Added CI/license/Python badges + guides & tutorials section
 
 ### Fixed
 - Ruff lint errors: unused imports, E712 comparisons
