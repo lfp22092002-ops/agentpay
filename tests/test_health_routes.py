@@ -13,7 +13,7 @@ os.environ["BOT_TOKEN"] = ""
 os.environ["API_SECRET"] = "test-secret-key-for-tests-minimum-32-bytes-long"
 
 from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from models.database import Base
 

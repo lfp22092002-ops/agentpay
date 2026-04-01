@@ -26,7 +26,6 @@ from mcp.server import (  # noqa: E402
     handle_identity,
     _write_message,
     _read_message,
-    _load_tool_definitions,
 )
 
 

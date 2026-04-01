@@ -1,7 +1,6 @@
 """
 Tests for API middleware: security headers, rate limiting, exception handler.
 """
-import time
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
