@@ -10,6 +10,8 @@ All notable changes to AgentPay will be documented in this file.
 - **Health endpoint tests**: Route-level test coverage for `/v1/health`
 - **MCP server tests**: 19 handler tests + tool registry + error paths
 - **Middleware tests**: Security headers, rate limiting, exception handler
+- **Python sync SDK tests**: 21 unit tests covering all client methods, errors, retries
+- **TypeScript SDK tests**: 24 unit tests covering all endpoints, error handling, retries
 - **PR template**: `.github/PULL_REQUEST_TEMPLATE.md` for consistent contributions
 - **llms-full.txt**: Comprehensive API docs for LLM discoverability (7.3KB)
 - **Competitive landscape docs**: Razorpay, ReFiBuy, Rye, Affirm+Stripe, Stars deadline
