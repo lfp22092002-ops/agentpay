@@ -84,8 +84,12 @@ jobs:
           node-version: "20"
 
       - name: Build TypeScript SDK
-        working-directory: sdk/ts
+        working-directory: sdk-ts
         run: |
           npm install
           npx tsc --noEmit
           npx tsup src/index.ts --format esm,cjs --dts --clean
+
+      - name: Test TypeScript SDK
+        working-directory: sdk-ts
+        run: npx vitest run
