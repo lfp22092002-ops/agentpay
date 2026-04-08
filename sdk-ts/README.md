@@ -92,6 +92,19 @@ try {
 - ✅ Respects `Retry-After` headers
 - ✅ Works in Node.js 18+, Deno, Bun, edge runtimes
 
+## Development
+
+```bash
+# Run tests
+npm test
+
+# Type check
+npm run typecheck
+
+# Build
+npm run build
+```
+
 ## License
 
 MIT
