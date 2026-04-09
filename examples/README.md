@@ -21,6 +21,8 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [google_adk_agent.py](google_adk_agent.py) | Google ADK (Agent Development Kit) with budget tools |
 | [microsoft_agent_example.py](microsoft_agent_example.py) | Microsoft Agent Framework with @tool decorated budget tools |
 | [anthropic_claude_agent.py](anthropic_claude_agent.py) | Anthropic Claude with tool_use for budget-aware spending |
+| [mcp_client.py](mcp_client.py) | MCP client — connect to AgentPay's MCP server |
+| [mcp_server_paid_tools.py](mcp_server_paid_tools.py) | **MCP server** — monetize your tools with per-call payments |
 
 ## TypeScript / Node.js
 
