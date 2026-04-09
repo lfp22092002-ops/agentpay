@@ -7,7 +7,7 @@ fastapi==0.135.3
 fastapi-cloud-cli==0.16.1
 fastapi-cli==0.0.24
 httpx==0.28.1
-lithic==0.115.0
+lithic==0.120.0
 psycopg2-binary==2.9.11
 PyJWT==2.12.1
 python-dotenv==1.2.1
