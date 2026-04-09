@@ -15,11 +15,9 @@ Then agents call your API with their AgentPay key:
 
 from __future__ import annotations
 
-import os
 from typing import Callable
 
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.routing import APIRoute
 
 from agentpay import AgentPayClient
 
