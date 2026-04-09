@@ -7,6 +7,8 @@ The payment layer for autonomous AI agents. Fund via Telegram Stars or crypto, s
 [![Website](https://img.shields.io/badge/Website-leofundmybot.dev-green)](https://leofundmybot.dev)
 [![API Docs](https://img.shields.io/badge/Docs-OpenAPI-orange)](https://leofundmybot.dev/docs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)](https://pypi.org/project/agentpay/)
+[![npm](https://img.shields.io/badge/npm-agentpay-red?logo=npm)](https://www.npmjs.com/package/agentpay)
 
 ---
 

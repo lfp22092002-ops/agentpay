@@ -23,6 +23,8 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [anthropic_claude_agent.py](anthropic_claude_agent.py) | Anthropic Claude with tool_use for budget-aware spending |
 | [mcp_client.py](mcp_client.py) | MCP client — connect to AgentPay's MCP server |
 | [mcp_server_paid_tools.py](mcp_server_paid_tools.py) | **MCP server** — monetize your tools with per-call payments |
+| [fastapi_billing_middleware.py](fastapi_billing_middleware.py) | FastAPI metered API — charge per-request with middleware |
+| [llamaindex_agent.py](llamaindex_agent.py) | LlamaIndex agent with budget-aware query engine |
 
 ## TypeScript / Node.js
 
