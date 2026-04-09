@@ -1,0 +1,34 @@
+# docker-compose.dev.yml — Development overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Adds: hot-reload, source mounting, debug logging, exposed DB ports.
+
+services:
+  api:
+    build:
+      context: .
+      target: base  # skip production optimizations
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8080 --reload --log-level debug
+    environment:
+      ENVIRONMENT: development
+      LOG_LEVEL: debug
+    volumes:
+      - .:/app:cached
+      - /app/.venv  # don't mount venv from host
+
+  bot:
+    command: python -m bot.main
+    environment:
+      ENVIRONMENT: development
+      LOG_LEVEL: debug
+    volumes:
+      - .:/app:cached
+      - /app/.venv
+
+  db:
+    ports:
+      - "5432:5432"  # expose for local tools (pgcli, DBeaver)
+
+  redis:
+    ports:
+      - "6379:6379"  # expose for redis-cli

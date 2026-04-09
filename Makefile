@@ -34,6 +34,9 @@ run-bot:  ## Start the Telegram bot
 docker:  ## Build and run with Docker Compose
 	docker compose up --build -d
 
+docker-dev:  ## Run with hot-reload (development mode)
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
 docker-down:  ## Stop Docker Compose
 	docker compose down
 
