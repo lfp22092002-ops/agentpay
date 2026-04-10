@@ -5,6 +5,11 @@ All notable changes to AgentPay will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Quick-start setup script**: `scripts/setup.sh` — auto `.env`, secrets, docker compose
+- **Docker Compose dev mode**: `docker-compose.dev.yml` for hot-reload development
+- **Examples**: FastAPI billing middleware, Express.js billing middleware (TS), MCP server with payment-gated tools
+- **Makefile targets**: `test-all`, `ts-test`, `sdk-publish`
+- **Healthcheck**: Added to API service in `docker-compose.yml`
 - **Streamable HTTP MCP transport**: `mcp/server_http.py` — alternative to stdio for web-native integrations
 - **Wallet route tests**: 14 tests covering spend, refund, transfer, chains, card, webhook, approvals, x402
 - **Health endpoint tests**: Route-level test coverage for `/v1/health`
@@ -23,6 +28,9 @@ All notable changes to AgentPay will be documented in this file.
 - **CODEOWNERS**: Core payment + security paths require review
 - **CONTRIBUTING.md**: Added `pip-audit` security scanning instructions
 - **README**: Added CI/license/Python badges + guides & tutorials section
+
+### Security
+- **requirements-lock.txt**: Pinned deps, fixed 15 CVEs (aiohttp, cryptography, pygments)
 
 ### Fixed
 - Ruff lint errors: unused imports, E712 comparisons
