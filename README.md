@@ -217,6 +217,7 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 - 🚀 [Product Hunt Launch Plan](docs/product-hunt-launch.md)
 - 🌐 [Competitive Landscape](docs/competitive-landscape.md)
 - 📦 [PyPI Publishing Guide](docs/pypi-publish-guide.md)
+- 🔧 [Troubleshooting](docs/troubleshooting.md) — common issues and solutions
 
 ---
 
