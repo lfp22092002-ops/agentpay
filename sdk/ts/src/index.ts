@@ -23,3 +23,4 @@ export type {
   Webhook,
   X402Response,
 } from "./types.js";
+export { verifyWebhook } from "./webhook.js";
