@@ -209,6 +209,7 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 - 🆔 **ERC-8004 Discovery**: [.well-known/erc-8004.json](https://leofundmybot.dev/.well-known/erc-8004.json)
 - 🐍 **SDK**: `sdk/agentpay/`
 - 🔧 **MCP Tools**: `mcp/`
+- 🤖 **LLM Discovery**: [llms.txt](llms.txt) · [llms-install.md](llms-install.md)
 
 ### Guides & Tutorials
 
