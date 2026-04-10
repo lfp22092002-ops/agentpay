@@ -1,0 +1,46 @@
+# AgentPay
+
+> Payment infrastructure for autonomous AI agents. Fund via Telegram Stars or crypto, set spending rules, let your agent operate independently.
+
+## Docs
+
+- [README](https://github.com/lfp22092002-ops/agentpay/blob/main/README.md): Overview, quickstart, architecture
+- [API Docs](https://leofundmybot.dev/docs): OpenAPI reference
+- [Architecture](https://github.com/lfp22092002-ops/agentpay/blob/main/ARCHITECTURE.md): System design and directory guide
+- [MCP Install](https://github.com/lfp22092002-ops/agentpay/blob/main/llms-install.md): MCP server setup for AI agents
+- [Troubleshooting](https://github.com/lfp22092002-ops/agentpay/blob/main/docs/troubleshooting.md): Common issues and fixes
+- [Contributing](https://github.com/lfp22092002-ops/agentpay/blob/main/CONTRIBUTING.md): How to contribute
+- [Changelog](https://github.com/lfp22092002-ops/agentpay/blob/main/CHANGELOG.md): Release history
+- [Security](https://github.com/lfp22092002-ops/agentpay/blob/main/SECURITY.md): Security policy
+
+## SDKs
+
+- Python: `pip install agentpay` (Python 3.9+)
+- TypeScript: `npm install agentpay` (Node 18+)
+
+## MCP Server
+
+AgentPay exposes MCP tools for AI agents:
+- `create_wallet` — Create a funded wallet for an agent
+- `check_balance` — Check wallet balance
+- `send_payment` — Send USDC payments
+- `list_transactions` — View transaction history
+
+Remote: `https://leofundmybot.dev/mcp` (set `x-api-key` header)
+Local: `python -m mcp.server` (stdio transport)
+
+## Key Features
+
+- Telegram Stars + USDC funding (Base, Polygon, BNB Chain, Solana)
+- Agent spending rules and approval workflows
+- Webhook notifications (HMAC-SHA256 signed)
+- Virtual Visa cards via Lithic
+- x402 payment protocol support
+- REST API (24+ endpoints)
+
+## Links
+
+- Website: https://leofundmybot.dev
+- Telegram: https://t.me/FundmyAIbot
+- GitHub: https://github.com/lfp22092002-ops/agentpay
+- API: https://leofundmybot.dev/docs
