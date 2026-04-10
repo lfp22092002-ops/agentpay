@@ -26,6 +26,8 @@ import {
 
 const DEFAULT_BASE_URL = "https://leofundmybot.dev";
 const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_MAX_RETRIES = 3;
+const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 
 /**
  * AgentPay client for managing AI agent wallets and payments.
@@ -43,11 +45,13 @@ export class AgentPayClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
+  private readonly maxRetries: number;
 
   constructor(apiKey: string, options?: AgentPayOptions) {
     this.apiKey = apiKey;
     this.baseUrl = (options?.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
     this.timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    this.maxRetries = options?.maxRetries ?? DEFAULT_MAX_RETRIES;
   }
 
   // ------------------------------------------------------------------
@@ -65,41 +69,65 @@ export class AgentPayClient {
       url += `?${sp.toString()}`;
     }
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "X-API-Key": this.apiKey,
-          ...(options?.json ? { "Content-Type": "application/json" } : {}),
-        },
-        body: options?.json ? JSON.stringify(options.json) : undefined,
-        signal: controller.signal,
-      });
-
-      if (res.ok) {
-        return (await res.json()) as T;
-      }
-
-      let detail: string;
       try {
-        const body = await res.json();
-        detail = (body as Record<string, unknown>).detail as string ?? res.statusText;
-      } catch {
-        detail = res.statusText;
-      }
+        const res = await fetch(url, {
+          method,
+          headers: {
+            "X-API-Key": this.apiKey,
+            ...(options?.json ? { "Content-Type": "application/json" } : {}),
+          },
+          body: options?.json ? JSON.stringify(options.json) : undefined,
+          signal: controller.signal,
+        });
 
-      if (res.status === 401) throw new AuthenticationError(detail);
-      if (res.status === 429) throw new RateLimitError(detail);
-      if ((res.status === 402 || res.status === 400) && detail.toLowerCase().includes("balance")) {
-        throw new InsufficientBalanceError(detail);
+        clearTimeout(timer);
+
+        if (res.ok) {
+          return (await res.json()) as T;
+        }
+
+        let detail: string;
+        try {
+          const body = await res.json();
+          detail = (body as Record<string, unknown>).detail as string ?? res.statusText;
+        } catch {
+          detail = res.statusText;
+        }
+
+        // Non-retryable errors — throw immediately
+        if (res.status === 401) throw new AuthenticationError(detail);
+        if ((res.status === 402 || res.status === 400) && detail.toLowerCase().includes("balance")) {
+          throw new InsufficientBalanceError(detail);
+        }
+
+        // Retryable errors — retry with exponential backoff
+        if (RETRYABLE_STATUS_CODES.has(res.status) && attempt < this.maxRetries) {
+          const retryAfter = res.headers.get("Retry-After");
+          const delay = retryAfter ? parseFloat(retryAfter) * 1000 : Math.min(2 ** attempt * 1000, 8000);
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
+
+        if (res.status === 429) throw new RateLimitError(detail);
+        throw new AgentPayError(res.status, detail);
+      } catch (err) {
+        clearTimeout(timer);
+        if (err instanceof AgentPayError) throw err;
+        // Network errors — retry if attempts remain
+        if (attempt < this.maxRetries) {
+          await new Promise((r) => setTimeout(r, Math.min(2 ** attempt * 1000, 8000)));
+          continue;
+        }
+        throw err;
       }
-      throw new AgentPayError(res.status, detail);
-    } finally {
-      clearTimeout(timer);
     }
+
+    // Unreachable, but TypeScript needs it
+    throw new AgentPayError(0, "Max retries exceeded");
   }
 
   // ------------------------------------------------------------------

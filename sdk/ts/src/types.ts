@@ -100,6 +100,8 @@ export interface AgentPayOptions {
   baseUrl?: string;
   /** Request timeout in milliseconds (default: 30000). */
   timeoutMs?: number;
+  /** Maximum retry attempts for 429/5xx errors (default: 3, set 0 to disable). */
+  maxRetries?: number;
 }
 
 /** Agent identity profile (KYA — Know Your Agent). */
