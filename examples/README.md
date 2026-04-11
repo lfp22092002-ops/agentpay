@@ -33,6 +33,7 @@ Ready-to-run examples showing how to integrate AgentPay into your AI agents.
 | [basic_usage.ts](basic_usage.ts) | Balance, spend, transactions, refund (TS SDK) |
 | [vercel_ai_agent.ts](vercel_ai_agent.ts) | Vercel AI SDK agent with Zod-typed payment tools |
 | [express_billing_middleware.ts](express_billing_middleware.ts) | Express.js metered API — charge per-request with middleware |
+| [mastra_agent.ts](mastra_agent.ts) | Mastra agent with Zod-typed budget tools and workflow support |
 
 ## cURL / Any Language
 
