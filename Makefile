@@ -42,7 +42,7 @@ docker-down:  ## Stop Docker Compose
 
 test-all:  ## Run Python + TypeScript SDK tests
 	python -m pytest tests/ -v --tb=short
-	cd sdk-ts && npx vitest run
+	cd sdk/ts && npx vitest run
 
 sdk-build:  ## Build Python SDK
 	cd sdk/agentpay && python -m build
@@ -51,10 +51,10 @@ sdk-publish:  ## Publish Python SDK to PyPI (needs TWINE_USERNAME/TWINE_PASSWORD
 	cd sdk/agentpay && python -m build && twine upload dist/*
 
 ts-build:  ## Build TypeScript SDK
-	cd sdk-ts && npm install && npx tsup
+	cd sdk/ts && npm install && npx tsup
 
 ts-test:  ## Run TypeScript SDK tests
-	cd sdk-ts && npx vitest run
+	cd sdk/ts && npx vitest run
 
 clean:  ## Remove build artifacts
 	rm -rf __pycache__ .pytest_cache htmlcov .coverage coverage.xml

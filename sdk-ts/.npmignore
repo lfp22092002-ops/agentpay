@@ -1,7 +1,0 @@
-src/
-src/__tests__/
-node_modules/
-tsconfig.json
-tsup.config.ts
-package-lock.json
-.gitignore
