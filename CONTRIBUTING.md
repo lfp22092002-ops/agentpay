@@ -9,7 +9,15 @@ Thanks for your interest in contributing! AgentPay is an open-source payment lay
 - PostgreSQL 14+ (production) or SQLite (tests)
 - Node.js 18+ (TypeScript SDK only)
 
-### Setup
+### Quick Setup (recommended)
+
+```bash
+git clone https://github.com/lfp22092002-ops/agentpay.git
+cd agentpay
+./scripts/setup.sh   # generates .env, installs deps, starts Docker Compose
+```
+
+### Manual Setup
 
 ```bash
 git clone https://github.com/lfp22092002-ops/agentpay.git
@@ -27,6 +35,12 @@ pip install -r requirements-dev.txt
 cp .env.example .env
 # Edit .env with your Telegram bot token and DB URL
 ```
+
+### Useful Docs
+
+- **[Architecture overview](docs/architecture.md)** — component diagrams, request flow, deployment layout
+- **[API reference](docs/api-reference.md)** — all 35+ endpoints documented
+- **[Getting started](docs/getting-started.md)** — first integration guide
 
 ### Running Tests
 
