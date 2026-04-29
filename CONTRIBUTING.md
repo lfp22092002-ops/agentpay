@@ -152,6 +152,23 @@ class TestMyFeature:
 5. Keep commits atomic and descriptive
 6. Open a PR with a clear description of what and why
 
+## Good First Issues 🟢
+
+New contributor? Start here — these are self-contained and well-scoped:
+
+| Area | Task | Difficulty |
+|------|------|------------|
+| Tests | Add coverage for `providers/telegram_stars.py` | Easy |
+| Tests | Add coverage for `api/routes/miniapp.py` auth flows | Easy |
+| Docs | Add a "Deploy to Railway" guide in `docs/guides/` | Easy |
+| SDK | Add `list_transactions()` pagination support to Python SDK | Medium |
+| SDK | Add webhook verification helper to TypeScript SDK | Medium |
+| Feature | Add `GET /v1/agents/{id}/spend-history` CSV export endpoint | Medium |
+| Feature | Add Stripe payment provider in `providers/stripe_provider.py` | Hard |
+| Security | Audit rate limiting thresholds and document them | Medium |
+
+To claim an issue: open a GitHub issue with the title prefix `[Claim]` before starting, so we don't duplicate effort.
+
 ## Areas to Contribute
 
 - **More test coverage**: `providers/` and `api/routes/miniapp.py` need more tests
