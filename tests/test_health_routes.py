@@ -66,3 +66,20 @@ async def test_root_serves_landing(test_app):
     assert resp.status_code in (200, 404)
     if resp.status_code == 200:
         assert "text/html" in resp.headers.get("content-type", "")
+
+
+@pytest.mark.asyncio
+async def test_health_detailed(test_app):
+    """GET /v1/health/detailed returns status, uptime, and db check."""
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/v1/health/detailed")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] in ("ok", "degraded")
+    assert data["service"] == "agentpay"
+    assert "version" in data
+    assert "uptime_seconds" in data
+    assert "checks" in data
+    assert "database" in data["checks"]
+    assert data["checks"]["database"]["status"] in ("ok", "error")
