@@ -9,6 +9,8 @@
 - [Architecture](https://github.com/lfp22092002-ops/agentpay/blob/main/ARCHITECTURE.md): System design and directory guide
 - [MCP Install](https://github.com/lfp22092002-ops/agentpay/blob/main/llms-install.md): MCP server setup for AI agents
 - [Troubleshooting](https://github.com/lfp22092002-ops/agentpay/blob/main/docs/troubleshooting.md): Common issues and fixes
+- [Deploy to Railway](https://github.com/lfp22092002-ops/agentpay/blob/main/docs/guides/deploy-railway.md): One-click cloud deployment
+- [Deploy to VPS](https://github.com/lfp22092002-ops/agentpay/blob/main/docs/guides/deploy-vps.md): Self-host on DigitalOcean/Hetzner
 - [Contributing](https://github.com/lfp22092002-ops/agentpay/blob/main/CONTRIBUTING.md): How to contribute
 - [Changelog](https://github.com/lfp22092002-ops/agentpay/blob/main/CHANGELOG.md): Release history
 - [Security](https://github.com/lfp22092002-ops/agentpay/blob/main/SECURITY.md): Security policy
