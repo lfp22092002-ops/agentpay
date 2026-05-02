@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.middleware import limiter
 from models.database import get_db
-from models.schema import PlatformRevenue
+from models.schema import PlatformRevenue, Agent, User
 from config.settings import API_SECRET
 
 import jwt as pyjwt
@@ -57,6 +57,39 @@ async def get_revenue(request: Request, db: AsyncSession = Depends(get_db)):
         "total_revenue_usd": float(total_usd),
         "today_revenue_usd": float(today_usd),
         "total_fee_transactions": tx_count,
+    }
+
+
+@router.get("/agents")
+@limiter.limit("10/minute")
+async def list_agents(request: Request, db: AsyncSession = Depends(get_db), limit: int = 50, offset: int = 0):
+    """List all agents with balances and stats. Admin only."""
+    _verify_admin(request)
+
+    result = await db.execute(
+        select(Agent).order_by(Agent.created_at.desc()).limit(limit).offset(offset)
+    )
+    agents = result.scalars().all()
+
+    count_result = await db.execute(select(func.count(Agent.id)))
+    total = count_result.scalar() or 0
+
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "agents": [
+            {
+                "id": a.id,
+                "name": a.name,
+                "api_key_prefix": a.api_key_prefix,
+                "balance_usd": float(a.balance_usd),
+                "daily_limit_usd": float(a.daily_limit_usd),
+                "is_active": a.is_active,
+                "created_at": a.created_at.isoformat(),
+            }
+            for a in agents
+        ],
     }
 
 
