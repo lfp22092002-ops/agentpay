@@ -183,3 +183,41 @@ class TestExportCSV:
             resp = await client.get("/v1/export", headers=_headers(api_key))
             assert resp.status_code == 200
             assert "text/csv" in resp.headers["content-type"]
+
+
+class TestAuthRejections:
+    @pytest.mark.asyncio
+    async def test_balance_bad_key(self, agents_app):
+        """GET /v1/balance with invalid key returns 401."""
+        app, _, _ = agents_app
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/v1/balance", headers={"X-API-Key": "ap_invalid_000000000000000000000000000000"})
+        assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_transactions_bad_key(self, agents_app):
+        """GET /v1/transactions with invalid key returns 401."""
+        app, _, _ = agents_app
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/v1/transactions", headers={"X-API-Key": "ap_invalid_000000000000000000000000000000"})
+        assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_rotate_key_bad_key(self, agents_app):
+        """POST /v1/agent/rotate-key with invalid key returns 401."""
+        app, _, _ = agents_app
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post("/v1/agent/rotate-key", headers={"X-API-Key": "ap_invalid_000000000000000000000000000000"})
+        assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_export_bad_key(self, agents_app):
+        """GET /v1/export with invalid key returns 401."""
+        app, _, _ = agents_app
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/v1/export", headers={"X-API-Key": "ap_invalid_000000000000000000000000000000"})
+        assert resp.status_code == 401
