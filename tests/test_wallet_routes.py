@@ -231,3 +231,72 @@ async def test_x402_probe_ok(setup):
             r = await c.get("/v1/x402/probe", params={"url": "https://example.com/res"})
     assert r.status_code == 200
     assert r.json()["gated"] is True
+
+
+# ── Wallet (chain) ────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_wallet_get_base(setup):
+    """GET /v1/wallet returns address and balance for base chain."""
+    app, key, *_ = setup
+    with patch("providers.local_wallet.get_wallet_address", return_value="0xABC123"), \
+         patch("providers.local_wallet.get_wallet_balance", return_value={"network": "base", "balance_eth": "0.0"}):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+            r = await c.get("/v1/wallet", headers=_h(key))
+    assert r.status_code == 200
+    d = r.json()
+    assert d["chain"] == "base"
+    assert "address" in d  # address returned (may be mock or generated)
+
+
+@pytest.mark.asyncio
+async def test_wallet_get_solana(setup):
+    """GET /v1/wallet?chain=solana returns solana wallet info."""
+    app, key, *_ = setup
+    with patch("providers.solana_wallet.get_solana_wallet_address", return_value="SoLAddr123"), \
+         patch("providers.solana_wallet.get_solana_balance", return_value={"network": "solana", "balance_sol": "0", "balance_usdc": "0"}):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+            r = await c.get("/v1/wallet", params={"chain": "solana"}, headers=_h(key))
+    assert r.status_code == 200
+    assert r.json()["chain"] == "solana"
+
+
+@pytest.mark.asyncio
+async def test_wallet_all_chains(setup):
+    """GET /v1/wallet/all returns multi-chain wallet summary."""
+    app, key, *_ = setup
+    with patch("providers.local_wallet.get_wallet_address", return_value="0xABC123"), \
+         patch("providers.solana_wallet.get_solana_wallet_address", return_value=None), \
+         patch("providers.local_wallet.get_wallet_balance", return_value={"chain": "base", "balance_eth": "0", "network": "base"}):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+            r = await c.get("/v1/wallet/all", headers=_h(key))
+    assert r.status_code == 200
+    d = r.json()
+    assert "evm_address" in d
+    assert "chains" in d
+
+
+@pytest.mark.asyncio
+async def test_send_usdc_unsupported_chain(setup):
+    """POST /v1/wallet/send-usdc with unsupported chain returns error."""
+    app, key, *_ = setup
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.post("/v1/wallet/send-usdc",
+                         json={"to_address": "0xDEAD", "amount": 1.0, "chain": "bitcoin"},
+                         headers=_h(key))
+    assert r.status_code == 200
+    assert r.json()["success"] is False
+    assert "Unsupported" in r.json()["error"]
+
+
+@pytest.mark.asyncio
+async def test_send_native_unsupported_chain(setup):
+    """POST /v1/wallet/send-native with unsupported chain returns error."""
+    app, key, *_ = setup
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.post("/v1/wallet/send-native",
+                         json={"to_address": "0xDEAD", "amount": 0.001, "chain": "tron"},
+                         headers=_h(key))
+    assert r.status_code == 200
+    assert r.json()["success"] is False
+    assert "Unsupported" in r.json()["error"]
