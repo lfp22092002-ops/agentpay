@@ -330,3 +330,50 @@ class TestPayeeEvaluation:
             assert allowed is False
             assert "exceeds" in reason
             break
+
+    @pytest.mark.asyncio
+    async def test_list_rule_with_max_amount(self, payee_app):
+        """Listed rule with max_amount_usd returns float value."""
+        app, api_key, _ = payee_app
+        from httpx import AsyncClient, ASGITransport
+
+        # Create rule with max_amount
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+            await c.post(
+                "/v1/agent/payee-rules",
+                json={"rule_type": "allow", "payee_type": "domain", "payee_value": "capped.com", "max_amount_usd": 5.0},
+                headers={"X-API-Key": api_key},
+            )
+            r = await c.get("/v1/agent/payee-rules", headers={"X-API-Key": api_key})
+        assert r.status_code == 200
+        rules = r.json()["rules"]
+        capped = next((x for x in rules if x["payee_value"] == "capped.com"), None)
+        assert capped is not None
+        assert capped["max_amount_usd"] == 5.0
+
+    @pytest.mark.asyncio
+    async def test_deny_no_matching_allow_rule(self, payee_app):
+        """check_payee_allowed: only-deny rules + no match = allowed."""
+        app, api_key, agent = payee_app
+        from models.database import get_db
+        from api.routes.payee_rules import check_payee_allowed
+        from models.schema import PayeeRule
+
+        override_db = app.dependency_overrides[get_db]
+        async for db in override_db():
+            rule = PayeeRule(
+                agent_id=agent.id,
+                rule_type="deny",
+                payee_type="domain",
+                payee_value="blocked.com",
+            )
+            db.add(rule)
+            await db.commit()
+
+            # Different domain — only deny rules exist, no match → allowed
+            allowed, reason = await check_payee_allowed(
+                db, agent.id, "domain", "other.com", Decimal("1.00")
+            )
+            assert allowed is True
+            assert reason is None
+            break
