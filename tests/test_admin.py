@@ -172,3 +172,53 @@ class TestWithdrawEndpoint:
             assert data["success"] is True
             assert data["total_revenue_usd"] == 5.0
             assert "0xD51B" in data["withdraw_to"]
+
+
+class TestListAgentsEndpoint:
+    @pytest.mark.asyncio
+    async def test_list_agents_no_auth(self, admin_app):
+        """List agents rejects unauthenticated requests."""
+        transport = ASGITransport(app=admin_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/v1/admin/agents")
+            assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_list_agents_non_admin(self, admin_app):
+        """List agents rejects non-admin users."""
+        transport = ASGITransport(app=admin_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/v1/admin/agents",
+                headers={"Authorization": f"Bearer {_non_admin_token()}"},
+            )
+            assert resp.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_list_agents_empty(self, admin_app, db):
+        """List agents returns empty list when no agents exist."""
+        transport = ASGITransport(app=admin_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/v1/admin/agents",
+                headers={"Authorization": f"Bearer {_admin_token()}"},
+            )
+            assert resp.status_code == 200
+            data = resp.json()
+            assert "agents" in data
+            assert "total" in data
+            assert data["total"] >= 0
+
+    @pytest.mark.asyncio
+    async def test_list_agents_pagination_params(self, admin_app, db):
+        """List agents accepts limit and offset query params."""
+        transport = ASGITransport(app=admin_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/v1/admin/agents?limit=10&offset=0",
+                headers={"Authorization": f"Bearer {_admin_token()}"},
+            )
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["limit"] == 10
+            assert data["offset"] == 0
