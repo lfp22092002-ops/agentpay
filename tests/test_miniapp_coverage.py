@@ -751,6 +751,26 @@ class TestMiniappAnalytics:
             )
             assert resp.status_code == 404
 
+    @pytest.mark.asyncio
+    @pytest.mark.skip(reason="SQLite does not support cast(col, Date); requires Postgres")
+    async def test_analytics_success(self, miniapp_env):
+        """Analytics returns full breakdown for agent with transactions."""
+        app, tg_id, agent = miniapp_env
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                f"/v1/miniapp/agents/{agent.id}/analytics",
+                headers=_auth(tg_id),
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "daily_volume" in data
+        assert "spending_by_payee" in data
+        assert "hourly_heatmap" in data
+        assert "balance_history" in data
+        assert "summary" in data
+        assert data["summary"]["total_transactions_30d"] >= 0
+
 
 # ═══════════════════════════════════════
 # IDENTITY
