@@ -11,8 +11,8 @@ All notable changes to AgentPay will be documented in this file.
 - **Makefile targets**: `test-all`, `ts-test`, `sdk-publish`
 - **Healthcheck**: Added to API service in `docker-compose.yml`
 - **Streamable HTTP MCP transport**: `mcp/server_http.py` — alternative to stdio for web-native integrations
-- **Wallet route tests**: 14 tests covering spend, refund, transfer, chains, card, webhook, approvals, x402
-- **Health endpoint tests**: Route-level test coverage for `/v1/health`
+- **Wallet route tests**: 19 tests covering spend, refund, transfer, chains, card, webhook, approvals, x402, wallet GET/all, send-usdc/native
+- **Health endpoint tests**: Route-level test coverage for `/v1/health` and `/v1/health/detailed`
 - **MCP server tests**: 19 handler tests + tool registry + error paths
 - **Middleware tests**: Security headers, rate limiting, exception handler
 - **Python sync SDK tests**: 21 unit tests covering all client methods, errors, retries
@@ -21,13 +21,24 @@ All notable changes to AgentPay will be documented in this file.
 - **llms-full.txt**: Comprehensive API docs for LLM discoverability (7.3KB)
 - **Competitive landscape docs**: Razorpay, ReFiBuy, Rye, Affirm+Stripe, Stars deadline
 - **Payee whitelists**: Added to landing page + llms.txt + getting-started guide
+- **`GET /v1/health/detailed`**: New endpoint returning DB connectivity, latency, and uptime
+- **`GET /v1/admin/agents`**: Paginated agent listing endpoint for ops/admin dashboards
+- **Good First Issues table**: Added to `CONTRIBUTING.md` to attract open-source contributors
+- **Railway deployment guide**: `docs/guides/deploy-railway.md` — one-click cloud setup
+- **VPS deployment guide**: `docs/guides/deploy-vps.md` — DigitalOcean/Hetzner self-hosting
+- **Product Hunt launch copy**: `docs/product-hunt-copy.md` — ready-to-submit listing
+- **Admin agents coverage tests**: 4 tests for `GET /v1/admin/agents` (auth, pagination)
+- **Payee rules coverage tests**: max_amount_usd list path + deny-only allowance logic
+- **Auth rejection tests**: 401 coverage for balance, transactions, rotate-key, export endpoints
 
 ### Changed
 - **Dockerfile**: Multi-stage build (smaller image, no gcc in runtime)
 - **OpenAPI spec**: Added payee-rules endpoints (GET/POST/DELETE) — total 39 endpoints
 - **CODEOWNERS**: Core payment + security paths require review
-- **CONTRIBUTING.md**: Added `pip-audit` security scanning instructions
+- **CONTRIBUTING.md**: Added `pip-audit` security scanning instructions + good first issues
 - **README**: Added CI/license/Python badges + guides & tutorials section
+- **llms.txt**: Added links to Railway and VPS deployment guides
+- **Test count**: 626 tests (up from 621), 71% API coverage
 
 ### Security
 - **requirements-lock.txt**: Pinned deps, fixed 15 CVEs (aiohttp, cryptography, pygments)
@@ -35,6 +46,7 @@ All notable changes to AgentPay will be documented in this file.
 ### Fixed
 - Ruff lint errors: unused imports, E712 comparisons
 - Alembic env import fix
+- Analytics test documented as Postgres-only (SQLite `cast(Date)` incompatibility)
 
 ### CI
 - Added `pip-audit` security scanning job to CI pipeline
