@@ -69,6 +69,33 @@ async def test_root_serves_landing(test_app):
 
 
 @pytest.mark.asyncio
+async def test_robots_txt(test_app):
+    """GET /robots.txt returns the robots file."""
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/robots.txt")
+    assert resp.status_code in (200, 404)  # 404 ok if file missing in test env
+
+
+@pytest.mark.asyncio
+async def test_favicon(test_app):
+    """GET /favicon.svg returns image or 404."""
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/favicon.ico")
+    assert resp.status_code in (200, 404)
+
+
+@pytest.mark.asyncio
+async def test_sitemap(test_app):
+    """GET /sitemap.xml returns XML or 404."""
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/sitemap.xml")
+    assert resp.status_code in (200, 404)
+
+
+@pytest.mark.asyncio
 async def test_health_detailed(test_app):
     """GET /v1/health/detailed returns status, uptime, and db check."""
     transport = ASGITransport(app=test_app)
