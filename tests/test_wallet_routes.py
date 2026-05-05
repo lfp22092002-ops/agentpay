@@ -300,3 +300,69 @@ async def test_send_native_unsupported_chain(setup):
     assert r.status_code == 200
     assert r.json()["success"] is False
     assert "Unsupported" in r.json()["error"]
+
+
+# ── Approval — wrong agent ────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_approval_wrong_agent(setup):
+    """GET /v1/approvals/{id} with wrong agent returns 403."""
+    app, key, agent_id, _ = setup
+    from unittest.mock import MagicMock, patch
+
+    mock_approval = MagicMock()
+    mock_approval.agent_id = "some-other-agent-id"  # different from our agent
+    mock_approval.resolved = False
+    mock_approval.result = None
+
+    with patch("core.approvals.get_pending", return_value=mock_approval):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+            r = await c.get("/v1/approvals/some-approval-id", headers=_h(key))
+    assert r.status_code == 403
+
+
+# ── x402/pay ─────────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_x402_pay_mocked(setup):
+    """POST /v1/x402/pay dispatches to pay_x402_resource."""
+    app, key, *_ = setup
+    from unittest.mock import AsyncMock, patch
+
+    mock_result = {"success": True, "payment_hash": "0xabc", "amount_paid": "0.01", "resource_response": "{}"}
+
+    with patch("providers.x402_protocol.pay_x402_resource", new_callable=AsyncMock, return_value=mock_result):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+            r = await c.post("/v1/x402/pay",
+                             json={"url": "https://example.com/resource", "method": "GET"},
+                             headers=_h(key))
+    assert r.status_code == 200
+    assert r.json()["success"] is True
+
+
+# ── send-usdc EVM ─────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_send_usdc_evm(setup):
+    """POST /v1/wallet/send-usdc on bnb chain hits the EVM path."""
+    app, key, *_ = setup
+    # Real send_usdc will fail without private key but route IS reachable
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.post("/v1/wallet/send-usdc",
+                         json={"to_address": "0xABC", "amount": 1.0, "chain": "bnb"},
+                         headers=_h(key))
+    # 200 with success=False (no private key) or success=True if mocked
+    assert r.status_code == 200
+
+
+# ── send-native EVM ───────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_send_native_evm(setup):
+    """POST /v1/wallet/send-native on bnb chain hits the EVM path."""
+    app, key, *_ = setup
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.post("/v1/wallet/send-native",
+                         json={"to_address": "0xABC", "amount": 0.001, "chain": "bnb"},
+                         headers=_h(key))
+    assert r.status_code == 200
