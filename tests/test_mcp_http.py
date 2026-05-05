@@ -194,3 +194,97 @@ class TestMCPSSE:
         assert "text/event-stream" in resp.headers.get("content-type", "")
         lines = [line for line in resp.text.strip().split("\n") if line.startswith("data: ")]
         assert len(lines) == 2
+
+
+class TestMCPToolCallMocked:
+    """Test MCP tool dispatch with mocked SDK client."""
+
+    @pytest.mark.asyncio
+    async def test_tool_balance_mocked(self, mcp_client):
+        """agentpay_balance tool call succeeds with mocked client."""
+        from unittest.mock import MagicMock, patch
+
+        mock_client = MagicMock()
+        mock_balance = MagicMock()
+        mock_balance.model_dump.return_value = {"balance_usd": 10.0, "agent_id": "test"}
+        mock_client.get_balance.return_value = mock_balance
+
+        with patch("api.routes.mcp._get_client", return_value=mock_client):
+            resp = await mcp_client.post("/mcp", json={
+                "jsonrpc": "2.0",
+                "id": 50,
+                "method": "tools/call",
+                "params": {"name": "agentpay_balance", "arguments": {}},
+            }, headers={"X-API-Key": "ap_test_key"})
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "isError" not in data["result"]
+        assert "balance_usd" in data["result"]["content"][0]["text"]
+
+    @pytest.mark.asyncio
+    async def test_tool_spend_mocked(self, mcp_client):
+        """agentpay_spend tool call dispatches correctly."""
+        from unittest.mock import MagicMock, patch
+
+        mock_client = MagicMock()
+        mock_result = MagicMock()
+        mock_result.model_dump.return_value = {"success": True, "amount": 1.0}
+        mock_client.spend.return_value = mock_result
+
+        with patch("api.routes.mcp._get_client", return_value=mock_client):
+            resp = await mcp_client.post("/mcp", json={
+                "jsonrpc": "2.0",
+                "id": 51,
+                "method": "tools/call",
+                "params": {"name": "agentpay_spend", "arguments": {"amount": 1.0, "description": "test"}},
+            }, headers={"X-API-Key": "ap_test_key"})
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "isError" not in data["result"]
+
+    @pytest.mark.asyncio
+    async def test_tool_transactions_mocked(self, mcp_client):
+        """agentpay_transactions tool returns list."""
+        from unittest.mock import MagicMock, patch
+
+        mock_client = MagicMock()
+        mock_tx = MagicMock()
+        mock_tx.model_dump.return_value = {"id": "tx1", "amount": 1.0}
+        mock_client.get_transactions.return_value = [mock_tx]
+
+        with patch("api.routes.mcp._get_client", return_value=mock_client):
+            resp = await mcp_client.post("/mcp", json={
+                "jsonrpc": "2.0",
+                "id": 52,
+                "method": "tools/call",
+                "params": {"name": "agentpay_transactions", "arguments": {"limit": 5}},
+            }, headers={"X-API-Key": "ap_test_key"})
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "isError" not in data["result"]
+        assert "transactions" in data["result"]["content"][0]["text"]
+
+    @pytest.mark.asyncio
+    async def test_tool_chains_mocked(self, mcp_client):
+        """agentpay_chains tool returns chain list."""
+        from unittest.mock import MagicMock, patch
+
+        mock_client = MagicMock()
+        mock_chain = MagicMock()
+        mock_chain.model_dump.return_value = {"id": "base", "name": "Base"}
+        mock_client.list_chains.return_value = [mock_chain]
+
+        with patch("api.routes.mcp._get_client", return_value=mock_client):
+            resp = await mcp_client.post("/mcp", json={
+                "jsonrpc": "2.0",
+                "id": 53,
+                "method": "tools/call",
+                "params": {"name": "agentpay_chains", "arguments": {}},
+            }, headers={"X-API-Key": "ap_test_key"})
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "isError" not in data["result"]
