@@ -25,6 +25,8 @@ async def get_agent_auth(
     if not agent:
         raise HTTPException(status_code=401, detail="Invalid API key")
     if not agent.is_active:
+        # Note: get_agent_by_api_key already filters is_active=True, so this
+        # path is only reachable if the agent is deactivated mid-request.
         raise HTTPException(status_code=403, detail="Agent is deactivated")
     return agent, db
 

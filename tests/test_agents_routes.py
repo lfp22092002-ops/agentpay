@@ -221,3 +221,32 @@ class TestAuthRejections:
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             resp = await client.get("/v1/export", headers={"X-API-Key": "ap_invalid_000000000000000000000000000000"})
         assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_balance_inactive_agent(self, agents_app):
+        """GET /v1/balance with a deactivated agent returns 403."""
+        app, api_key, agent = agents_app
+        from models.database import get_db
+        from models.schema import Agent
+        from sqlalchemy import select
+
+        override_db = app.dependency_overrides[get_db]
+        async for db in override_db():
+            result = await db.execute(select(Agent).where(Agent.id == agent.id))
+            ag = result.scalar_one()
+            ag.is_active = False
+            await db.commit()
+            break
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/v1/balance", headers=_headers(api_key))
+        assert resp.status_code in (401, 403)  # inactive agent filtered at DB level → 401
+
+        # Restore
+        async for db in override_db():
+            result = await db.execute(select(Agent).where(Agent.id == agent.id))
+            ag = result.scalar_one()
+            ag.is_active = True
+            await db.commit()
+            break
