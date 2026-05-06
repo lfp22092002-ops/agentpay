@@ -222,3 +222,42 @@ class TestListAgentsEndpoint:
             data = resp.json()
             assert data["limit"] == 10
             assert data["offset"] == 0
+
+
+class TestInvalidToken:
+    @pytest.mark.asyncio
+    async def test_revenue_invalid_token(self, admin_app):
+        """Revenue endpoint rejects malformed JWT."""
+        transport = ASGITransport(app=admin_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/v1/admin/revenue",
+                headers={"Authorization": "Bearer not.a.valid.jwt"},
+            )
+            assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_agents_invalid_token(self, admin_app):
+        """Admin agents endpoint rejects malformed JWT."""
+        transport = ASGITransport(app=admin_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/v1/admin/agents",
+                headers={"Authorization": "Bearer not.a.valid.jwt"},
+            )
+            assert resp.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_agents_pagination_offset(self, admin_app):
+        """Admin agents endpoint handles offset parameter."""
+        transport = ASGITransport(app=admin_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/v1/admin/agents?limit=5&offset=100",
+                headers={"Authorization": f"Bearer {_admin_token()}"},
+            )
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["offset"] == 100
+            assert data["limit"] == 5
+            assert data["agents"] == []  # no agents at offset 100
