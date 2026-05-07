@@ -46,6 +46,7 @@ echo
 # Core endpoints
 echo "Core:"
 check_endpoint "Health" "/v1/health"
+check_json_field "Health detailed" "/v1/health/detailed" "checks"
 check_endpoint "OpenAPI docs" "/docs"
 check_endpoint "ReDoc" "/redoc"
 check_endpoint "OpenAPI JSON" "/openapi.json"
