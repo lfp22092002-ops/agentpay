@@ -11,6 +11,7 @@
 - [Troubleshooting](https://github.com/lfp22092002-ops/agentpay/blob/main/docs/troubleshooting.md): Common issues and fixes
 - [Deploy to Railway](https://github.com/lfp22092002-ops/agentpay/blob/main/docs/guides/deploy-railway.md): One-click cloud deployment
 - [Deploy to VPS](https://github.com/lfp22092002-ops/agentpay/blob/main/docs/guides/deploy-vps.md): Self-host on DigitalOcean/Hetzner
+- [First Agent in 10 Minutes](https://github.com/lfp22092002-ops/agentpay/blob/main/docs/guides/first-agent.md): Step-by-step beginner tutorial
 - [Contributing](https://github.com/lfp22092002-ops/agentpay/blob/main/CONTRIBUTING.md): How to contribute
 - [Changelog](https://github.com/lfp22092002-ops/agentpay/blob/main/CHANGELOG.md): Release history
 - [Security](https://github.com/lfp22092002-ops/agentpay/blob/main/SECURITY.md): Security policy

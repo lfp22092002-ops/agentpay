@@ -213,6 +213,9 @@ Works with LangChain, CrewAI, OpenClaw, and any MCP-compatible agent.
 
 ### Guides & Tutorials
 
+- 🚀 [Build Your First Paid Agent in 10 Minutes](docs/guides/first-agent.md) — step-by-step beginner tutorial
+- ☁️ [Deploy to Railway](docs/guides/deploy-railway.md) — one-click cloud deployment
+- 🖥️ [Deploy to VPS](docs/guides/deploy-vps.md) — self-host on DigitalOcean/Hetzner
 - 📖 [Getting Started](docs/getting-started.md) — setup, first agent, first transaction
 - 🎓 [Give Your Agent a Wallet in 5 Minutes](docs/tutorial-give-your-agent-a-wallet.md) — hands-on tutorial
 - 🚀 [Product Hunt Launch Plan](docs/product-hunt-launch.md)
