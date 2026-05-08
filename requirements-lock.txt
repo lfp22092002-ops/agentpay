@@ -111,7 +111,7 @@ pyunormalize==17.0.0
 PyYAML==6.0.3
 regex==2026.4.4
 requests==2.33.1
-respx==0.22.0
+respx==0.23.1
 rich==14.3.3
 rich-toolkit==0.19.7
 rignore==0.7.6
