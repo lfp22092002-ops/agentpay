@@ -110,3 +110,22 @@ class X402Response(BaseModel):
     data: Optional[str] = None
     paid_usd: float = 0
     error: Optional[str] = None
+
+
+class BatchTransferItem(BaseModel):
+    """Result for a single transfer in a batch."""
+
+    agent_id: str
+    success: bool
+    amount_usd: float
+    tx_id: Optional[str] = None
+    error: Optional[str] = None
+
+
+class BatchTransferResponse(BaseModel):
+    """Response from the batch/transfer endpoint."""
+
+    total_requested_usd: float
+    total_successful_usd: float
+    total_failed_usd: float
+    items: List[BatchTransferItem]

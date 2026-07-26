@@ -15,6 +15,7 @@ from .exceptions import (
 )
 from .models import (
     Balance,
+    BatchTransferResponse,
     Chain,
     RefundResponse,
     SpendResponse,
@@ -435,6 +436,34 @@ class AgentPayClient:
             client.delete_payee_rule("rule-uuid-here")
         """
         return self._request("DELETE", f"/v1/agent/payee-rules/{rule_id}")
+
+    # ------------------------------------------------------------------
+    # Batch Transfers
+    # ------------------------------------------------------------------
+
+    def batch_transfer(
+        self,
+        payments: List[Dict[str, float]],
+    ) -> BatchTransferResponse:
+        """Transfer funds to multiple agents in parallel.
+
+        Args:
+            payments: List of dicts with 'agent_id' (str) and 'amount_usd' (float).
+                Example: [{"agent_id": "sub-1", "amount_usd": 10.0}, ...]
+
+        Returns:
+            A :class:`BatchTransferResponse` with per-item results.
+
+        Example::
+
+            # Distribute $100 across 4 agents ($25 each)
+            payments = [{"agent_id": sub.id, "amount_usd": 25.0}
+                        for sub in orchestrator.sub_agents]
+            result = client.batch_transfer(payments)
+            print(f"{result.total_successful_usd}/${result.total_requested_usd} funded")
+        """
+        data = self._request("POST", "/v1/batch/transfer", json={"payments": payments})
+        return BatchTransferResponse(**data)
 
     # ------------------------------------------------------------------
     # Cleanup

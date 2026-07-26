@@ -122,6 +122,7 @@ from api.routes.admin import router as admin_router
 from api.routes.miniapp import router as miniapp_router
 from api.routes.mcp import router as mcp_router
 from api.routes.payee_rules import router as payee_rules_router
+from api.routes.batch import router as batch_router
 
 app.include_router(health_router)
 app.include_router(agents_router)
@@ -131,6 +132,7 @@ app.include_router(admin_router)
 app.include_router(miniapp_router)
 app.include_router(mcp_router)
 app.include_router(payee_rules_router)
+app.include_router(batch_router)
 
 
 # ═══════════════════════════════════════

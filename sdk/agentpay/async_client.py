@@ -15,6 +15,7 @@ from .exceptions import (
 )
 from .models import (
     Balance,
+    BatchTransferResponse,
     Chain,
     RefundResponse,
     SpendResponse,
@@ -347,6 +348,26 @@ class AgentPayAsyncClient:
     async def delete_payee_rule(self, rule_id: str) -> Dict[str, Any]:
         """Delete (deactivate) a payee rule."""
         return await self._request("DELETE", f"/v1/agent/payee-rules/{rule_id}")
+
+    # ------------------------------------------------------------------
+    # Batch Transfers
+    # ------------------------------------------------------------------
+
+    async def batch_transfer(
+        self,
+        payments: List[Dict[str, float]],
+    ) -> BatchTransferResponse:
+        """Transfer funds to multiple agents in parallel.
+
+        Args:
+            payments: List of dicts with 'agent_id' (str) and 'amount_usd' (float).
+                Example: [{"agent_id": "sub-1", "amount_usd": 10.0}, ...]
+
+        Returns:
+            A :class:`BatchTransferResponse` with per-item results.
+        """
+        data = await self._request("POST", "/v1/batch/transfer", json={"payments": payments})
+        return BatchTransferResponse(**data)
 
     # ------------------------------------------------------------------
     # Cleanup

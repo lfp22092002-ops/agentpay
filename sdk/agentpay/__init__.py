@@ -28,6 +28,8 @@ from .exceptions import (
 )
 from .models import (
     Balance,
+    BatchTransferItem,
+    BatchTransferResponse,
     Chain,
     RefundResponse,
     SpendResponse,
@@ -53,6 +55,8 @@ __all__ = [
     "RateLimitError",
     "verify_webhook_signature",
     "Balance",
+    "BatchTransferItem",
+    "BatchTransferResponse",
     "Chain",
     "RefundResponse",
     "SpendResponse",
