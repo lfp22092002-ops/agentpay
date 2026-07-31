@@ -33,3 +33,16 @@ PLATFORM_FEE_PERCENT = 0.0  # FREE during launch — grow first, monetize later
 DEFAULT_DAILY_LIMIT_USD = 50.0
 DEFAULT_TRANSACTION_LIMIT_USD = 25.0
 MAX_DAILY_LIMIT_USD = 10000.0
+
+# Stripe (optional - for credit/debit card funding)
+def get_stripe_secret_key():
+    """Lazy load Stripe secret key so env vars can be overridden at runtime."""
+    val = os.getenv("STRIPE_SECRET_KEY", "")
+    if val and ENVIRONMENT == "production":
+        import warnings
+        warnings.warn("⚠️ CRITICAL: STRIPE_SECRET_KEY not set in production!", stacklevel=2)
+    return val
+
+def get_stripe_webhook_secret():
+    """Lazy load Stripe webhook secret."""
+    return os.getenv("STRIPE_WEBHOOK_SECRET", "")
