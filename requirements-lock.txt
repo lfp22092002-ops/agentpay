@@ -87,7 +87,7 @@ pip-requirements-parser==32.0.1
 pip_audit==2.10.0
 platformdirs==4.9.4
 pluggy==1.6.0
-propcache==0.4.1
+propcache==0.5.2
 psycopg2-binary==2.9.11
 ptyprocess==0.7.0
 py-serializable==2.1.0
