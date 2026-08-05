@@ -78,7 +78,7 @@ msgpack==1.1.2
 multidict==6.7.1
 nest-asyncio==1.6.0
 packageurl-python==0.17.6
-packaging==26.0
+packaging==26.2
 parsimonious==0.10.0
 pathspec==1.1.1
 pexpect==4.9.0
